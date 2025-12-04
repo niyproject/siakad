@@ -1,0 +1,15 @@
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    
+    <div>
+        <h3 class="fw-bold mb-0 text-dark"><%= title %></h3>
+        <small class="text-muted">
+            <i class="far fa-clock me-1"></i> <%= new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+        </small>
+    </div>
+    
+    <div class="d-flex align-items-center">
+        <button class="btn btn-primary d-md-none shadow-sm" onclick="document.querySelector('.sidebar').classList.toggle('show')">
+            <i class="fas fa-bars"></i> Menu
+        </button>
+    </div>
+</div>

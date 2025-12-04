@@ -1,0 +1,98 @@
+<%- include('../partials/header', { title: 'Mengerjakan Tugas' }) %>
+<%- include('../components/sidebar-siswa', { activePage: 'tugas', profil: profil }) %>
+
+<style>
+    body { background-color: #f0f2f5; }
+    .soal-card { border-left: 5px solid #2a5298; transition: transform 0.2s; }
+    .soal-card:hover { transform: translateY(-2px); }
+    .form-check-input:checked { background-color: #2a5298; border-color: #2a5298; }
+    .hover-shadow:hover { background-color: #e9ecef !important; cursor: pointer; }
+</style>
+
+<div class="main-content">
+
+    <%- include('../components/navbar', { title: 'Lembar Kerja Siswa', user: profil }) %>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            
+            <div class="card card-custom border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary"><%= tugas.tipe_tugas %></span>
+                        
+                        <% if(isLate) { %>
+                            <span class="badge bg-danger">WAKTU HABIS</span>
+                        <% } else { %>
+                            <span class="text-danger fw-bold small"><i class="far fa-clock me-1"></i> Deadline: <%= new Date(tugas.deadline).toLocaleString() %></span>
+                        <% } %>
+                    </div>
+                    <h3 class="fw-bold text-dark"><%= tugas.judul %></h3>
+                    <p class="text-muted"><%= tugas.deskripsi %></p>
+                </div>
+            </div>
+
+            <form action="/siswa/tugas/kerjakan/<%= tugas.id %>" method="POST">
+                
+                <% soalList.forEach((soal, index) => { %>
+                    <% 
+                        let prevAnswer = '';
+                        if (typeof jawabanLama !== 'undefined' && jawabanLama[soal.id]) {
+                            prevAnswer = jawabanLama[soal.id];
+                        }
+                    %>
+
+                    <div class="card card-custom border-0 shadow-sm mb-3 soal-card">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold mb-3 text-primary">Soal No. <%= index + 1 %></h6>
+                            <p class="lead text-dark mb-4" style="font-size: 1.1rem; white-space: pre-wrap;"><%= soal.pertanyaan %></p>
+
+                            <% if (soal.tipe === 'pg') { %>
+                                <div class="d-grid gap-2">
+                                    <% Object.keys(soal.opsi).forEach(key => { %>
+                                        <div class="form-check p-3 border rounded bg-light hover-shadow position-relative">
+                                            <input class="form-check-input ms-1 position-absolute" type="radio" 
+                                                   name="jawaban_<%= soal.id %>" 
+                                                   id="soal_<%= soal.id %>_<%= key %>" 
+                                                   value="<%= key %>" 
+                                                   <%= prevAnswer === key ? 'checked' : '' %> 
+                                                   required style="top: 1.2rem; left: 1rem;">
+                                            
+                                            <label class="form-check-label w-100 ps-4 ms-2" for="soal_<%= soal.id %>_<%= key %>">
+                                                <strong class="me-2 text-primary"><%= key %>.</strong> <%= soal.opsi[key] %>
+                                            </label>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            <% } else { %>
+                                <textarea name="jawaban_<%= soal.id %>" class="form-control bg-light border-0" rows="4" placeholder="Ketik jawaban Anda di sini..." required><%= prevAnswer %></textarea>
+                            <% } %>
+
+                        </div>
+                    </div>
+                <% }) %>
+
+                <div class="card card-custom border-0 shadow-sm mt-4 mb-5">
+                    <div class="card-body p-4">
+                        <div class="d-grid">
+                            <% if(isLate) { %>
+                                <button type="button" class="btn btn-secondary btn-lg" disabled>
+                                    <i class="fas fa-lock me-2"></i> Maaf, Waktu Sudah Habis
+                                </button>
+                            <% } else { %>
+                                <button type="submit" class="btn btn-success btn-lg fw-bold shadow" onclick="return confirm('Yakin ingin menyimpan jawaban? Anda masih bisa mengeditnya sebelum deadline.')">
+                                    <i class="fas fa-paper-plane me-2"></i> SIMPAN JAWABAN
+                                </button>
+                            <% } %>
+                            <a href="/siswa/tugas" class="btn btn-link text-muted mt-2">Batal / Kembali</a>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

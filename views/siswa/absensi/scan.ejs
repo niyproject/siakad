@@ -1,0 +1,139 @@
+<%- include('../../partials/header', { title: 'Scan Masuk' }) %>
+<%- include('../../components/sidebar-siswa', { activePage: 'scan', profil: user }) %>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="main-content">
+
+    <%- include('../../components/navbar', { title: 'Scan Kehadiran', user: user }) %>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            
+            <div class="card card-custom border-0 shadow-lg text-center overflow-hidden">
+                <div class="card-header bg-dark text-white p-3 border-0">
+                    <h5 class="m-0 fw-bold"><i class="fas fa-qrcode me-2"></i> Pemindai Absensi</h5>
+                </div>
+                
+                <div class="card-body p-0 bg-black position-relative">
+                    <div id="reader" style="width: 100%; min-height: 300px;"></div>
+                    
+                    <div id="camera-loading" class="position-absolute top-50 start-50 translate-middle text-white">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 small">Menyiapkan Kamera...</p>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white p-4">
+                    <p class="text-muted small mb-3">Arahkan kamera ke QR Code yang ditampilkan Guru di depan kelas.</p>
+                    
+                    <div id="scan-result" class="alert alert-secondary border-0 d-none">
+                        Menunggu scan...
+                    </div>
+
+                    <a href="/dashboard" class="btn btn-outline-secondary rounded-pill w-100 fw-bold">
+                        <i class="fas fa-arrow-left me-2"></i> Kembali ke Dashboard
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const scanResult = document.getElementById('scan-result');
+    let isScanning = true; // Flag biar gak double scan
+
+    // Fungsi Sukses Scan
+    async function onScanSuccess(decodedText, decodedResult) {
+        if (!isScanning) return; // Cegah spam scan
+        isScanning = false;
+
+        // 1. Kasih Feedback Visual & Audio
+        // beep(); // (Opsional, perlu file audio)
+        scanResult.classList.remove('d-none', 'alert-secondary', 'alert-danger');
+        scanResult.classList.add('alert-info');
+        scanResult.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Memproses data...';
+
+        try {
+            // 2. Kirim Data ke Server (AJAX)
+            const response = await fetch('/absensi/siswa/proses-scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ qr_data: decodedText }) // Kirim string JSON dari QR
+            });
+
+            const result = await response.json();
+
+            // 3. Cek Hasil Server
+            if (result.success) {
+                // SUKSES: Matikan kamera & Tampilkan Pesan
+                html5QrcodeScanner.clear();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: result.message,
+                    confirmButtonColor: '#2a5298',
+                    confirmButtonText: 'Oke, Siap Belajar!'
+                }).then(() => {
+                    window.location.href = '/dashboard'; // Redirect
+                });
+
+            } else {
+                // GAGAL (QR Basi / Salah Kelas)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Absen',
+                    text: result.message,
+                    confirmButtonColor: '#d33'
+                });
+                
+                // Reset UI biar bisa scan lagi
+                scanResult.classList.remove('alert-info');
+                scanResult.classList.add('alert-danger');
+                scanResult.innerText = result.message;
+                isScanning = true; // Boleh scan lagi
+            }
+
+        } catch (error) {
+            console.error(error);
+            isScanning = true;
+        }
+    }
+
+    function onScanFailure(error) {
+        // Gak perlu ngapa-ngapain kalau gagal baca frame (biar console gak penuh)
+        // console.warn(`Code scan error = ${error}`);
+    }
+
+    // Inisialisasi Scanner
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        /* verbose= */ false
+    );
+    
+    // Hilangkan loading pas kamera siap
+    document.getElementById('camera-loading').style.display = 'none';
+    
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+</script>
+
+<style>
+    #reader video {
+        object-fit: cover;
+        border-radius: 0 0 15px 15px;
+    }
+    #reader {
+        border: none !important;
+    }
+</style>
+
+<%- include('../../partials/footer') %>

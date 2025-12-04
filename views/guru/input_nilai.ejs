@@ -1,0 +1,96 @@
+<%- include('../partials/header', { title: 'Input Nilai' }) %>
+<%- include('../components/sidebar-guru', { activePage: 'dashboard', profil: profil }) %>
+
+<div class="main-content">
+
+    <%- include('../components/navbar', { title: 'Input Nilai', user: profil }) %>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card card-custom border-0 shadow-sm bg-primary text-white">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-1"><%= mengajar.nama_mapel %></h5>
+                        <p class="mb-0 opacity-75">Kelas: <strong><%= mengajar.nama_kelas %></strong></p>
+                    </div>
+                    <div>
+                        <a href="/dashboard" class="btn btn-light text-primary fw-bold shadow-sm">
+                            <i class="fas fa-arrow-left me-2"></i> Kembali
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-custom border-0 shadow-sm overflow-hidden">
+        <div class="card-body p-0">
+            <form action="/guru/nilai/<%= mengajar.id %>" method="POST">
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 py-3" style="width: 5%">No</th>
+                                <th style="width: 30%">Nama Siswa</th>
+                                <th class="text-center" style="width: 12%">Tugas (UH)</th>
+                                <th class="text-center" style="width: 12%">Tugas 2</th>
+                                <th class="text-center" style="width: 12%">UTS</th>
+                                <th class="text-center" style="width: 12%">UAS</th>
+                                <th class="text-center pe-4 fw-bold text-primary">Akhir</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (siswaList.length === 0) { %>
+                                <tr><td colspan="7" class="text-center py-5 text-muted">Belum ada siswa di kelas ini.</td></tr>
+                            <% } else { %>
+                                <% siswaList.forEach((siswa, index) => { %>
+                                <tr>
+                                    <td class="ps-4 text-center"><%= index + 1 %></td>
+                                    <td>
+                                        <div class="fw-bold text-dark"><%= siswa.nama_lengkap %></div>
+                                        <small class="text-muted"><%= siswa.nis %></small>
+                                        <input type="hidden" name="siswa_id" value="<%= siswa.siswa_id %>">
+                                    </td>
+                                    
+                                    <td class="p-2">
+                                        <input type="number" step="0.01" name="uh1" class="form-control text-center bg-light border-0" value="<%= siswa.uh1 || 0 %>">
+                                    </td>
+                                    <td class="p-2">
+                                        <input type="number" step="0.01" name="uh2" class="form-control text-center bg-light border-0" value="<%= siswa.uh2 || 0 %>">
+                                    </td>
+                                    <td class="p-2">
+                                        <input type="number" step="0.01" name="uts" class="form-control text-center bg-light border-0" value="<%= siswa.uts || 0 %>">
+                                    </td>
+                                    <td class="p-2">
+                                        <input type="number" step="0.01" name="uas" class="form-control text-center bg-light border-0" value="<%= siswa.uas || 0 %>">
+                                    </td>
+                                    
+                                    <td class="text-center pe-4 fw-bold fs-6 text-primary">
+                                        <%= siswa.nilai_akhir ? siswa.nilai_akhir.toFixed(0) : '-' %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-footer bg-white p-3 border-top d-flex justify-content-end">
+                    <button type="submit" class="btn btn-success fw-bold px-4 shadow-sm">
+                        <i class="fas fa-save me-2"></i> SIMPAN PERUBAHAN
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    
+    <div class="mt-3 text-muted small text-center">
+        <i class="fas fa-calculator me-1"></i> 
+        Rumus: (Rata-rata Tugas x 30%) + (UTS x 30%) + (UAS x 40%)
+    </div>
+
+</div>
+
+<%- include('../partials/footer') %>

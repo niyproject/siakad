@@ -1,0 +1,98 @@
+/* === 1. DEFINISI VARIABEL (Jantung Design System) === */
+:root {
+    /* Color Palette (Tema Biru Modern) */
+    --primary: #2a5298;
+    --primary-dark: #1e3c72;
+    --secondary: #ffc107;
+    --danger: #dc3545;
+    --success: #198754;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --text-muted: #6c757d;
+
+    /* Sidebar & Layout */
+    --sidebar-width: 260px;
+    --sidebar-bg: #343a40;
+    --sidebar-active: #495057;
+
+    /* Spacing & Radius */
+    --border-radius-sm: 8px;
+    --border-radius-md: 15px;
+    --border-radius-lg: 20px;
+    --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
+    --shadow-md: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* === 2. RESET GLOBAL === */
+body {
+    background-color: var(--light);
+    font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
+}
+
+/* === 3. COMPONENT: SIDEBAR === */
+.sidebar {
+    min-height: 100vh;
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.sidebar a {
+    color: #adb5bd;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    margin: 4px 10px;
+    border-radius: var(--border-radius-sm);
+    transition: 0.2s;
+}
+
+.sidebar a:hover, .sidebar a.active {
+    background: var(--sidebar-active);
+    color: var(--secondary);
+    transform: translateX(5px);
+}
+
+.sidebar .menu-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 20px 0 5px 20px;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+/* === 4. COMPONENT: MAIN CONTENT === */
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 30px;
+    transition: all 0.3s ease;
+}
+
+/* === 5. COMPONENT: CARDS === */
+.card-custom {
+    border: none;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    background: #fff;
+    transition: transform 0.2s;
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Responsif HP */
+@media (max-width: 768px) {
+    .sidebar { margin-left: calc(var(--sidebar-width) * -1); }
+    .main-content { margin-left: 0; padding: 15px; }
+    .sidebar.show { margin-left: 0; }
+}

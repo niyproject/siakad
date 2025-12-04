@@ -1,0 +1,84 @@
+<%- include('../../partials/header', { title: 'Data Siswa' }) %>
+<%- include('../../components/sidebar-admin', { activePage: 'siswa' }) %>
+
+<div class="main-content">
+
+    <%- include('../../components/navbar', { title: 'Data Siswa', user: user }) %>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold text-primary mb-1">Manajemen Siswa</h5>
+            <small class="text-muted">Kelola data peserta didik sekolah.</small>
+        </div>
+        <a href="/admin/siswa/tambah" class="btn btn-primary shadow-sm rounded-pill px-4">
+            <i class="fas fa-plus me-2"></i> Tambah Siswa
+        </a>
+    </div>
+
+    <div class="card card-custom border-0 shadow-sm overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">No</th>
+                            <th>Info Siswa</th>
+                            <th>Kelas</th>
+                            <th>L/P</th>
+                            <th class="text-end pe-4">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (siswaList.length === 0) { %>
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">Belum ada data siswa.</td>
+                            </tr>
+                        <% } else { %>
+                            <% siswaList.forEach((siswa, index) => { %>
+                            <tr>
+                                <td class="ps-4 text-center"><%= index + 1 %></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        
+                                        <% 
+                                            let fotoFinal = siswa.foto_profil;
+                                            // Kalau foto kosong atau masih 'default.png', cek gender
+                                            if (!fotoFinal || fotoFinal === 'default.png') {
+                                                if (siswa.jenis_kelamin === 'L') fotoFinal = 'default-male.png';
+                                                else if (siswa.jenis_kelamin === 'P') fotoFinal = 'default-female.png';
+                                            }
+                                        %>
+                                        
+                                        <img src="/uploads/profil/<%= fotoFinal %>" 
+                                            class="rounded-circle border me-3 shadow-sm" 
+                                            width="40" height="40" 
+                                            style="object-fit: cover;">
+                                            
+                                        <div>
+                                            <div class="fw-bold text-dark"><%= siswa.nama_lengkap %></div>
+                                            <small class="text-muted">NIS: <%= siswa.nis %></small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-info text-dark rounded-pill"><%= siswa.nama_kelas %></span></td>
+                                <td><%= siswa.jenis_kelamin %></td>
+                                <td class="text-end pe-4">
+                                    <a href="/admin/siswa/edit/<%= siswa.id %>" class="btn btn-sm btn-warning text-white rounded-circle shadow-sm" title="Edit">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <a href="/admin/siswa/hapus/<%= siswa.id %>" class="btn btn-sm btn-danger rounded-circle shadow-sm ms-1" title="Hapus" onclick="return confirm('Yakin mau menghapus siswa <%= siswa.nama_lengkap %>? Data nilai juga akan terhapus permanen!')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

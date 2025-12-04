@@ -1,0 +1,81 @@
+<%- include('../../partials/header', { title: 'Data Guru' }) %>
+<%- include('../../components/sidebar-admin', { activePage: 'guru' }) %>
+
+<div class="main-content">
+
+    <%- include('../../components/navbar', { title: 'Data Guru', user: user }) %>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold text-primary mb-1">Manajemen Guru</h5>
+            <small class="text-muted">Kelola data pengajar sekolah.</small>
+        </div>
+        <a href="/admin/guru/tambah" class="btn btn-primary shadow-sm rounded-pill px-4">
+            <i class="fas fa-plus me-2"></i> Tambah Guru
+        </a>
+    </div>
+
+    <div class="card card-custom border-0 shadow-sm overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3" style="width: 5%">No</th>
+                            <th>Info Guru</th>
+                            <th>NIP</th>
+                            <th>L/P</th>
+                            <th class="text-end pe-4">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (guruList.length === 0) { %>
+                            <tr><td colspan="5" class="text-center py-5 text-muted">Belum ada data guru.</td></tr>
+                        <% } else { %>
+                            <% guruList.forEach((guru, index) => { %>
+                            <tr>
+                                <td class="ps-4 text-center"><%= index + 1 %></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        
+                                        <% 
+                                            let fotoFinalGuru = guru.foto_profil;
+                                            if (!fotoFinalGuru || fotoFinalGuru === 'default.png') {
+                                                if (guru.jenis_kelamin === 'L') fotoFinalGuru = 'default-male.png';
+                                                else if (guru.jenis_kelamin === 'P') fotoFinalGuru = 'default-female.png';
+                                            }
+                                        %>
+                                        
+                                        <img src="/uploads/profil/<%= fotoFinalGuru %>" 
+                                            class="rounded-circle border me-3 shadow-sm" 
+                                            width="40" height="40" 
+                                            style="object-fit: cover;">
+                                            
+                                        <div>
+                                            <div class="fw-bold text-dark"><%= guru.nama_lengkap %></div>
+                                            <small class="text-muted"><%= guru.tempat_lahir || '-' %></small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill"><%= guru.nip %></span></td>
+                                <td><%= guru.jenis_kelamin %></td>
+                                <td class="text-end pe-4">
+                                    <a href="/admin/guru/edit/<%= guru.id %>" class="btn btn-sm btn-warning text-white rounded-circle shadow-sm" title="Edit">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <a href="/admin/guru/hapus/<%= guru.id %>" class="btn btn-sm btn-danger rounded-circle shadow-sm ms-1" title="Hapus" onclick="return confirm('Hapus Guru ini?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

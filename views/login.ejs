@@ -1,0 +1,193 @@
+<%- include('partials/header', { title: 'Login - SIAKAD' }) %>
+
+<style>
+    /* CSS Khusus Halaman Login */
+    body {
+        background: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
+        background-size: cover;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Overlay Gelap biar tulisan kebaca */
+    .bg-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.75); /* Dark Blue Overlay */
+        z-index: -1;
+    }
+
+    .card-login {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        overflow: hidden;
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+    }
+
+    .login-header {
+        text-align: center;
+        padding: 30px 20px 10px;
+    }
+
+    /* Tab Switcher Keren */
+    .nav-pills .nav-link {
+        color: #64748b;
+        font-weight: 600;
+        border-radius: 50px;
+        padding: 10px 20px;
+        transition: all 0.3s;
+    }
+    .nav-pills .nav-link.active {
+        background-color: var(--primary);
+        color: white;
+        box-shadow: 0 4px 6px rgba(42, 82, 152, 0.3);
+    }
+
+    .form-control {
+        background-color: #f1f5f9;
+        border: 1px solid transparent;
+        padding: 12px 15px;
+        font-size: 0.95rem;
+    }
+    .form-control:focus {
+        background-color: #fff;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(42, 82, 152, 0.1);
+    }
+
+    .input-group-text {
+        background-color: #f1f5f9;
+        border: none;
+        color: #94a3b8;
+    }
+</style>
+
+<div class="bg-overlay"></div>
+
+<div class="card card-login animate__animated animate__fadeInUp">
+    
+    <div class="login-header">
+        <div class="mb-3">
+            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow" style="width: 60px; height: 60px;">
+                <i class="fas fa-graduation-cap fa-2x"></i>
+            </div>
+        </div>
+        <h4 class="fw-bold text-dark">Selamat Datang</h4>
+        <p class="text-muted small">Silakan login untuk mengakses sistem akademik.</p>
+    </div>
+
+    <div class="card-body px-4 pb-4">
+
+        <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-pill" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill" id="pills-siswa-tab" data-bs-toggle="pill" data-bs-target="#pills-siswa" type="button" role="tab">
+                    <i class="fas fa-user-graduate me-1"></i> SISWA
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill" id="pills-guru-tab" data-bs-toggle="pill" data-bs-target="#pills-guru" type="button" role="tab">
+                    <i class="fas fa-chalkboard-teacher me-1"></i> GURU
+                </button>
+            </li>
+        </ul>
+
+        <% if (locals.error) { %>
+            <div class="alert alert-danger py-2 text-center small shadow-sm border-0 mb-3">
+                <i class="fas fa-exclamation-circle me-1"></i> <%= error %>
+            </div>
+        <% } %>
+
+        <div class="tab-content" id="pills-tabContent">
+            
+            <div class="tab-pane fade show active" id="pills-siswa" role="tabpanel">
+                <form action="/auth/login" method="POST">
+                    <input type="hidden" name="target_role" value="siswa">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Nomor Induk Siswa (NIS)</label>
+                        <div class="input-group">
+                            <span class="input-group-text rounded-start-3"><i class="fas fa-id-card"></i></span>
+                            <input type="text" name="username" class="form-control" placeholder="Contoh: 12345" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text rounded-start-3"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" class="form-control" id="passSiswa" placeholder="•••••••" required>
+                            <span class="input-group-text bg-white" style="cursor: pointer;" onclick="togglePass('passSiswa')">
+                                <i class="fas fa-eye text-muted"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3 shadow-sm">
+                        MASUK SEBAGAI SISWA <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="tab-pane fade" id="pills-guru" role="tabpanel">
+                <form action="/auth/login" method="POST">
+                    <input type="hidden" name="target_role" value="guru">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">NIP Guru</label>
+                        <div class="input-group">
+                            <span class="input-group-text rounded-start-3"><i class="fas fa-id-badge"></i></span>
+                            <input type="text" name="username" class="form-control" placeholder="Contoh: 19850101" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text rounded-start-3"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" class="form-control" id="passGuru" placeholder="•••••••" required>
+                            <span class="input-group-text bg-white" style="cursor: pointer;" onclick="togglePass('passGuru')">
+                                <i class="fas fa-eye text-muted"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning text-dark w-100 py-2 fw-bold rounded-3 shadow-sm">
+                        MASUK SEBAGAI GURU <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+    
+    <div class="card-footer bg-light text-center py-3 border-0">
+        <a href="/" class="text-decoration-none text-muted small fw-bold">
+            <i class="fas fa-home me-1"></i> Kembali ke Halaman Depan
+        </a>
+    </div>
+</div>
+
+<script>
+    // Script Toggle Password (Lihat/Sembunyi)
+    function togglePass(id) {
+        const input = document.getElementById(id);
+        const icon = input.nextElementSibling.querySelector('i');
+        
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,31 @@
+<%- include('../partials/header', { title: 'Kelola Tugas' }) %>
+<%- include('../components/sidebar-guru', { activePage: 'tugas', profil: profil }) %>
+
+<div class="main-content">
+    <%- include('../components/navbar', { title: 'Kelola Tugas & PR', user: profil }) %>
+
+    <div class="row g-4">
+        <% kelasList.forEach(item => { %>
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-custom h-100 border-0 shadow-sm border-start border-4 border-primary">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between">
+                        <span class="badge bg-primary rounded-pill mb-3 px-3"><%= item.nama_kelas %></span>
+                        <span class="badge bg-light text-primary border"><%= item.jumlah_tugas %> Tugas Aktif</span>
+                    </div>
+                    
+                    <h5 class="fw-bold text-dark mb-1"><%= item.nama_mapel %></h5>
+                    <p class="text-muted small mb-4">LMS / E-Learning</p>
+
+                    <div class="d-grid">
+                        <a href="/guru/tugas/<%= item.mengajar_id %>" class="btn btn-primary rounded-pill fw-bold shadow-sm">
+                            <i class="fas fa-tasks me-2"></i> Kelola Tugas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% }) %>
+    </div>
+</div>
+<%- include('../partials/footer') %>

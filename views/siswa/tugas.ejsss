@@ -1,0 +1,120 @@
+<%- include('../partials/header', { title: 'Tugas Sekolah' }) %>
+<%- include('../components/sidebar-siswa', { activePage: 'tugas', profil: profil }) %>
+
+<div class="main-content">
+
+    <%- include('../components/navbar', { title: 'Tugas & PR', user: profil }) %>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold text-dark mb-1">Daftar Pekerjaan Rumah</h5>
+            <small class="text-muted">Kerjakan tepat waktu sebelum deadline!</small>
+        </div>
+    </div>
+
+    <% if (tugasList.length === 0) { %>
+        <div class="text-center py-5">
+            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486754.png" width="100" class="mb-3 opacity-50">
+            <h6 class="text-muted">Hore! Tidak ada tugas aktif.</h6>
+        </div>
+    <% } else { %>
+        
+        <div class="row g-4">
+            <% tugasList.forEach(tugas => { %>
+                <% 
+                    let isSubmitted = tugas.pengumpulan_id ? true : false;
+                    let cardBorder = isSubmitted ? 'border-success' : 'border-warning';
+                    let statusBadge = isSubmitted ? '<span class="badge bg-success"><i class="fas fa-check me-1"></i> Selesai</span>' : '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Belum Dikumpul</span>';
+                    
+                    // Cek Nilai
+                    if (isSubmitted && tugas.nilai > 0) {
+                        statusBadge = `<span class="badge bg-primary"><i class="fas fa-star me-1"></i> Nilai: ${tugas.nilai}</span>`;
+                        cardBorder = 'border-primary';
+                    }
+                %>
+
+                <div class="col-md-6">
+                    <div class="card card-custom h-100 border-start border-4 <%= cardBorder %> shadow-sm">
+                        <div class="card-body p-4">
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-light text-dark border"><%= tugas.nama_mapel %></span>
+                                <%- statusBadge %>
+                            </div>
+
+                            <h5 class="fw-bold text-dark mb-2"><%= tugas.judul %></h5>
+                            <p class="text-muted small mb-3 text-truncate"><%= tugas.deskripsi %></p>
+
+                            <div class="d-flex align-items-center text-muted small mb-3">
+                                <i class="far fa-calendar-alt me-2 text-danger"></i> 
+                                Deadline: <strong><%= tugas.deadline_fmt %></strong>
+                            </div>
+
+                            <% if (tugas.komentar_guru) { %>
+                                <div class="alert alert-info border-0 bg-info bg-opacity-10 mt-2 mb-3 rounded-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-comment-dots text-info mt-1 me-2"></i>
+                                        <div>
+                                            <span class="fw-bold text-info small d-block">Catatan Guru:</span>
+                                            <span class="text-dark small fst-italic">"<%= tugas.komentar_guru %>"</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% } %>
+                            
+                            <div class="d-grid">
+                                <% if (isSubmitted && tugas.nilai > 0) { %>
+                                    <button class="btn btn-light text-muted" disabled>Sudah Dinilai</button>
+                                <% } else { %>
+                                    <button class="btn <%= isSubmitted ? 'btn-outline-success' : 'btn-primary' %>" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalKumpul<%= tugas.id %>">
+                                        <i class="fas fa-upload me-2"></i> <%= isSubmitted ? 'Edit Jawaban' : 'Kerjakan Tugas' %>
+                                    </button>
+                                <% } %>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="modalKumpul<%= tugas.id %>" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold">Kumpul Tugas</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form action="/siswa/tugas/kumpul/<%= tugas.id %>" method="POST" enctype="multipart/form-data">
+                                <div class="modal-body">
+                                    <div class="alert alert-info small py-2">
+                                        <strong>Mapel:</strong> <%= tugas.nama_mapel %><br>
+                                        <strong>Judul:</strong> <%= tugas.judul %>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">File Jawaban</label>
+                                        <input type="file" name="file_tugas" class="form-control" required>
+                                        <small class="text-muted">PDF, Word, atau Foto.</small>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">Catatan (Opsional)</label>
+                                        <textarea name="catatan" class="form-control" rows="2" placeholder="Pak, ini tugas saya..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary fw-bold">Kirim Jawaban 🚀</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            <% }) %>
+        </div>
+    <% } %>
+
+</div>
+
+<%- include('../partials/footer') %>

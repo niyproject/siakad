@@ -1,0 +1,137 @@
+<%- include('../../partials/header', { title: 'Edit Tugas' }) %>
+<%- include('../../components/sidebar-guru', { activePage: 'input-nilai', profil: profil }) %>
+
+<div class="main-content">
+    <%- include('../../components/navbar', { title: 'Edit Tugas', user: profil }) %>
+
+    <div class="card card-custom border-0 shadow-sm">
+        <div class="card-header bg-warning p-4 border-0 text-dark">
+            <h5 class="fw-bold m-0"><i class="fas fa-edit me-2"></i> Edit Tugas</h5>
+        </div>
+        
+        <form action="/guru/tugas/edit/<%= tugas.id %>" method="POST" enctype="multipart/form-data">
+            <div class="card-body p-4">
+                
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Judul Tugas</label>
+                        <input type="text" name="judul" class="form-control" value="<%= tugas.judul %>" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Tipe Tugas</label>
+                        <select name="tipe_tugas" class="form-select" required>
+                            <option value="Tugas Harian" <%= tugas.tipe_tugas == 'Tugas Harian' ? 'selected' : '' %>>Tugas Harian</option>
+                            <option value="PR" <%= tugas.tipe_tugas == 'PR' ? 'selected' : '' %>>PR</option>
+                            <option value="UTS" <%= tugas.tipe_tugas == 'UTS' ? 'selected' : '' %>>UTS</option>
+                            <option value="UAS" <%= tugas.tipe_tugas == 'UAS' ? 'selected' : '' %>>UAS</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Deskripsi</label>
+                    <textarea name="deskripsi" class="form-control" rows="3"><%= tugas.deskripsi %></textarea>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Deadline (Ganti jika perlu)</label>
+                        <% 
+                           const d = new Date(tugas.deadline);
+                           // Kurangi timezone offset biar pas di input
+                           d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                           const deadVal = d.toISOString().slice(0,16);
+                        %>
+                        <input type="datetime-local" name="deadline" class="form-control" value="<%= deadVal %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">File Soal</label>
+                        <input type="file" name="file_tugas" class="form-control">
+                        <% if(tugas.file_guru) { %>
+                            <small class="text-success"><i class="fas fa-check-circle"></i> File saat ini: <%= tugas.file_guru %></small>
+                        <% } else { %>
+                            <small class="text-muted">Belum ada file.</small>
+                        <% } %>
+                    </div>
+                </div>
+
+                <hr>
+
+                <% if (soalList && soalList.length > 0) { %>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold">Soal Kuis Manual</h6>
+                        <span class="badge bg-info">Mode Edit Soal</span>
+                    </div>
+
+                    <div id="container-soal">
+                        <% soalList.forEach((soal, index) => { %>
+                            <% const uid = Date.now() + index; %>
+                            
+                            <div class="card card-body bg-light border-0 mb-3 soal-item position-relative shadow-sm" id="soal-<%= uid %>">
+                                <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="this.parentElement.remove()"></button>
+                                <input type="hidden" name="soal_id[]" value="<%= uid %>">
+
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-primary me-2">Soal <%= index + 1 %></span>
+                                    <input type="hidden" name="jenis_soal[]" value="<%= soal.tipe %>">
+                                    <span class="badge bg-secondary"><%= soal.tipe.toUpperCase() %></span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <textarea name="soal_teks[]" class="form-control" rows="2" required><%= soal.pertanyaan %></textarea>
+                                </div>
+
+                                <% if (soal.tipe === 'pg') { %>
+                                    <div class="ps-3 border-start border-3 border-primary mb-2">
+                                        <label class="small text-muted mb-1">Opsi Jawaban:</label>
+                                        <div class="list-opsi-container mb-2">
+                                            <% Object.keys(soal.opsi).forEach(huruf => { %>
+                                                <div class="input-group input-group-sm mb-1 opsi-item">
+                                                    <span class="input-group-text fw-bold bg-white text-primary"><%= huruf %></span>
+                                                    <input type="text" name="opsi_<%= uid %>[]" class="form-control" value="<%= soal.opsi[huruf] %>" required>
+                                                    </div>
+                                            <% }) %>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-2">
+                                        <label class="fw-bold small text-success">Kunci Jawaban</label>
+                                        <select name="kunci_pg[]" class="form-select form-select-sm w-auto">
+                                            <% Object.keys(soal.opsi).forEach(huruf => { %>
+                                                <option value="<%= huruf %>" <%= soal.kunci == huruf ? 'selected' : '' %>><%= huruf %></option>
+                                            <% }) %>
+                                        </select>
+                                        <input type="hidden" name="kunci_jawaban[]" value=""> </div>
+
+                                <% } else { %>
+                                    <div class="mt-2">
+                                        <label class="fw-bold small text-success">Kunci Jawaban</label>
+                                        <input type="text" name="kunci_jawaban[]" class="form-control form-control-sm" value="<%= soal.kunci %>">
+                                        <input type="hidden" name="kunci_pg[]" value=""> </div>
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    </div>
+                    
+                    <div class="alert alert-warning small">
+                        <i class="fas fa-exclamation-circle me-1"></i> 
+                        Untuk menambah soal baru, silakan gunakan menu "Buat Tugas Baru". Halaman ini hanya untuk mengedit soal yang sudah ada.
+                    </div>
+
+                <% } else { %>
+                    <div class="alert alert-light border text-center">
+                        Tugas ini tidak memiliki soal manual (Hanya file upload).
+                    </div>
+                <% } %>
+
+            </div>
+            
+            <div class="card-footer bg-white p-3 text-end">
+                <a href="#" onclick="history.back()" class="btn btn-light fw-bold me-2">Batal</a>
+                <button type="submit" class="btn btn-warning fw-bold">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../../partials/footer') %>

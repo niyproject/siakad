@@ -1,0 +1,108 @@
+<%- include('../../partials/header', { title: 'Kelola Admin' }) %>
+<%- include('../../components/sidebar-admin', { activePage: 'pengaturan' }) %>
+
+<div class="main-content">
+
+    <%- include('../../components/navbar', { title: 'Kelola Admin', user: user }) %>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold text-primary mb-1">Administrator Sistem</h5>
+            <small class="text-muted">Manajemen hak akses pengelola aplikasi.</small>
+        </div>
+        
+        <% if (user.username === 'admin01') { %>
+            <button class="btn btn-primary shadow-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                <i class="fas fa-user-plus me-2"></i> Tambah Admin
+            </button>
+        <% } %>
+    </div>
+
+    <div class="card card-custom border-0 shadow-sm overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3" style="width: 10%">No</th>
+                            <th style="width: 15%">Foto</th>
+                            <th>Nama Lengkap</th>
+                            <th class="text-end pe-4" style="width: 20%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% adminList.forEach((adm, index) => { %>
+                        <tr>
+                            <td class="ps-4 text-center"><%= index + 1 %></td>
+                            <td>
+                                <img src="/uploads/profil/<%= adm.foto_profil || 'default.png' %>" 
+                                     class="rounded-circle border shadow-sm" 
+                                     width="45" height="45" 
+                                     style="object-fit: cover;">
+                            </td>
+                            <td>
+                                <span class="fw-bold text-dark"><%= adm.nama_lengkap %></span>
+                                
+                                <% if(adm.user_id === user.id) { %>
+                                    <span class="badge bg-success ms-2 rounded-pill">Anda</span>
+                                <% } %>
+                                
+                                <% if(adm.is_super_admin === 1) { %>
+                                    <span class="badge bg-warning text-dark ms-1 rounded-pill">Super Admin</span>
+                                <% } %>
+                            </td>
+                            
+                            <td class="text-end pe-4">
+                                <% if (adm.is_super_admin === 1) { %>
+                                    <span class="badge bg-light text-muted border">Protected</span>
+                                <% } else { %>
+                                    <% if(adm.user_id !== user.id) { %>
+                                        <a href="/admin/pengaturan/hapus/<%= adm.id %>" class="btn btn-sm btn-danger rounded-circle shadow-sm" onclick="return confirm('Yakin hapus admin ini?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    <% } else { %>
+                                        <button class="btn btn-sm btn-light text-muted rounded-circle" disabled><i class="fas fa-ban"></i></button>
+                                    <% } %>
+                                <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalTambah" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/admin/pengaturan/tambah" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Tambah Admin Baru</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Nama Lengkap</label>
+                            <input type="text" name="nama_lengkap" class="form-control" placeholder="Contoh: Staff Tata Usaha" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Username Login</label>
+                            <input type="text" name="username" class="form-control" placeholder="Contoh: admin_tu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Password</label>
+                            <input type="password" name="password" class="form-control" placeholder="Minimal 6 karakter" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary fw-bold">Simpan Admin</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

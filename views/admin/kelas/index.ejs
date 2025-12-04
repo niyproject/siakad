@@ -1,0 +1,148 @@
+<%- include('../../partials/header', { title: 'Data Kelas' }) %>
+<%- include('../../components/sidebar-admin', { activePage: 'kelas' }) %>
+
+<% 
+    const toRoman = (num) => {
+        const map = {
+            1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI',
+            7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X', 11: 'XI', 12: 'XII'
+        };
+        return map[num] || num;
+    }
+%>
+
+<div class="main-content">
+
+    <%- include('../../components/navbar', { title: 'Data Kelas', user: user }) %>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold text-primary mb-1">Manajemen Kelas</h5>
+            <small class="text-muted">Atur tingkat dan nama kelas.</small>
+        </div>
+        <button class="btn btn-primary shadow-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalTambah">
+            <i class="fas fa-plus me-2"></i> Tambah Kelas
+        </button>
+    </div>
+
+    <div class="card card-custom border-0 shadow-sm overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3" style="width: 10%">No</th>
+                            <th style="width: 20%">Tingkat</th>
+                            <th>Nama Kelas</th>
+                            <th class="text-end pe-4" style="width: 20%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (kelasList.length === 0) { %>
+                            <tr><td colspan="4" class="text-center py-5 text-muted">Belum ada data kelas.</td></tr>
+                        <% } else { %>
+                            <% kelasList.forEach((kelas, index) => { %>
+                            <tr>
+                                <td class="ps-4 text-center"><%= index + 1 %></td>
+                                <td>
+                                    <% let badgeColor = kelas.tingkat >= 10 ? 'bg-primary' : 'bg-success'; %>
+                                    <span class="badge <%= badgeColor %> rounded-pill px-3">
+                                        Kelas <%= toRoman(kelas.tingkat) %>
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-dark"><%= kelas.nama_kelas %></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-warning text-white rounded-circle shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<%= kelas.id %>" title="Edit">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <a href="/admin/kelas/hapus/<%= kelas.id %>" class="btn btn-sm btn-danger rounded-circle shadow-sm ms-1" title="Hapus" onclick="return confirm('Hapus kelas ini?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="modalEdit<%= kelas.id %>" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="/admin/kelas/edit/<%= kelas.id %>" method="POST">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title fw-bold">Edit Kelas</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small">Tingkat</label>
+                                                    <select name="tingkat" class="form-select" required>
+                                                        <optgroup label="SMP">
+                                                            <option value="7" <%= kelas.tingkat == 7 ? 'selected' : '' %>>7 (VII)</option>
+                                                            <option value="8" <%= kelas.tingkat == 8 ? 'selected' : '' %>>8 (VIII)</option>
+                                                            <option value="9" <%= kelas.tingkat == 9 ? 'selected' : '' %>>9 (IX)</option>
+                                                        </optgroup>
+                                                        <optgroup label="SMA/SMK">
+                                                            <option value="10" <%= kelas.tingkat == 10 ? 'selected' : '' %>>10 (X)</option>
+                                                            <option value="11" <%= kelas.tingkat == 11 ? 'selected' : '' %>>11 (XI)</option>
+                                                            <option value="12" <%= kelas.tingkat == 12 ? 'selected' : '' %>>12 (XII)</option>
+                                                        </optgroup>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small">Nama Kelas</label>
+                                                    <input type="text" name="nama_kelas" class="form-control" value="<%= kelas.nama_kelas %>" required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-warning fw-bold text-white">Update Data</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalTambah" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/admin/kelas/tambah" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Tambah Kelas Baru</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Tingkat</label>
+                            <select name="tingkat" class="form-select" required>
+                                <option value="">-- Pilih Tingkat --</option>
+                                <optgroup label="SMP">
+                                    <option value="7">7 (VII)</option>
+                                    <option value="8">8 (VIII)</option>
+                                    <option value="9">9 (IX)</option>
+                                </optgroup>
+                                <optgroup label="SMA/SMK">
+                                    <option value="10">10 (X)</option>
+                                    <option value="11">11 (XI)</option>
+                                    <option value="12">12 (XII)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Nama Kelas</label>
+                            <input type="text" name="nama_kelas" class="form-control" placeholder="Contoh: X-RPL-1" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary fw-bold">Simpan Kelas</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

@@ -1,0 +1,190 @@
+<%- include('../partials/header', { title: 'Tugas Sekolah' }) %>
+<%- include('../components/sidebar-siswa', { activePage: 'tugas', profil: profil }) %>
+
+<div class="main-content">
+
+    <%- include('../components/navbar', { title: 'Tugas & PR', user: profil }) %>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold text-dark mb-1">Daftar Pekerjaan Rumah</h5>
+            <small class="text-muted">Kerjakan tepat waktu sebelum deadline!</small>
+        </div>
+    </div>
+
+    <% if (tugasList.length === 0) { %>
+        <div class="text-center py-5">
+            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486754.png" width="100" class="mb-3 opacity-50">
+            <h6 class="text-muted">Hore! Tidak ada tugas aktif.</h6>
+        </div>
+    <% } else { %>
+        
+        <div class="row g-4">
+            <% tugasList.forEach(tugas => { %>
+                <% 
+                    let isSubmitted = tugas.pengumpulan_id ? true : false;
+                    let isLate = new Date() > new Date(tugas.deadline); 
+                    
+                    // KUNCI UTAMA: Cek Status Koreksi dari Guru
+                    // Nilai dianggap ada HANYA JIKA status_koreksi == 'Sudah'
+                    let isGraded = isSubmitted && tugas.status_koreksi === 'Sudah';
+
+                    let cardBorder = 'border-warning';
+                    let statusBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Belum Dikumpul</span>';
+                    
+                    if (!isSubmitted) {
+                        // BELUM KUMPUL
+                        if (isLate) {
+                            cardBorder = 'border-danger';
+                            statusBadge = '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Terlambat</span>';
+                        } else {
+                            cardBorder = 'border-warning';
+                            statusBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Belum Dikerjakan</span>';
+                        }
+                    } else {
+                        // SUDAH KUMPUL
+                        if (isGraded) {
+                            // SUDAH DINILAI GURU (Final)
+                            cardBorder = 'border-success'; 
+                            statusBadge = `<span class="badge bg-primary fs-6 px-3"><i class="fas fa-star text-warning me-2"></i>${tugas.nilai}</span>`;
+                        } else {
+                            // BELUM DINILAI GURU (Menunggu) -> Walaupun ada nilai otomatis di DB, user gak liat
+                            cardBorder = 'border-info';
+                            statusBadge = '<span class="badge bg-info text-dark"><i class="fas fa-hourglass-half me-1"></i> Menunggu Koreksi</span>';
+                        }
+                    }
+                %>
+
+                <div class="col-md-6">
+                    <div class="card card-custom h-100 border-start border-4 <%= cardBorder %> shadow-sm">
+                        <div class="card-body p-4">
+                            
+                            <div class="d-flex justify-content-between mb-2 align-items-center">
+                                <span class="badge bg-light text-dark border"><%= tugas.nama_mapel %></span>
+                                <%- statusBadge %>
+                            </div>
+
+                            <div class="mb-3">
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary mb-1" style="font-size: 0.75rem;"><%= tugas.tipe_tugas %></span>
+                                <h5 class="fw-bold text-dark mb-1"><%= tugas.judul %></h5>
+                            </div>
+                            
+                            <p class="text-muted small mb-3 text-truncate"><%= tugas.deskripsi %></p>
+
+                            <div class="d-flex align-items-center text-muted small mb-3">
+                                <% if (isLate && !isSubmitted) { %>
+                                    <i class="far fa-calendar-times me-2 text-danger"></i> 
+                                    <strong class="text-danger">Deadline Lewat: <%= tugas.deadline_fmt %></strong>
+                                <% } else { %>
+                                    <i class="far fa-calendar-alt me-2 text-primary"></i> 
+                                    Deadline: <strong><%= tugas.deadline_fmt %></strong>
+                                <% } %>
+                            </div>
+
+                            <% if (isGraded && tugas.komentar_guru) { %>
+                                <div class="alert alert-light border border-info mb-3 rounded-3 p-3 position-relative">
+                                    <i class="fas fa-quote-left text-info opacity-25 position-absolute top-0 start-0 m-2" style="font-size: 1.5rem;"></i>
+                                    <div class="position-relative ms-3">
+                                        <span class="fw-bold text-info small d-block mb-1">Catatan Guru:</span>
+                                        <p class="mb-0 small fst-italic fw-bold text-dark">"<%= tugas.komentar_guru %>"</p>
+                                    </div>
+                                </div>
+                            <% } %>
+
+                            <div class="d-grid">
+                                <% if (isGraded) { %>
+                                    <button class="btn btn-light text-success fw-bold border-success" disabled>
+                                        <i class="fas fa-check-circle me-2"></i> Penilaian Selesai
+                                    </button>
+                                
+                                <% } else if (!isSubmitted && isLate) { %>
+                                    <button class="btn btn-secondary" disabled>
+                                        <i class="fas fa-lock me-2"></i> Waktu Habis
+                                    </button>
+
+                                <% } else if (isSubmitted) { %>
+                                    <% if (!isLate) { %>
+                                        
+                                        <% if (tugas.soal_json) { %>
+                                            <a href="/siswa/tugas/kerjakan/<%= tugas.id %>" class="btn btn-outline-primary fw-bold">
+                                                <i class="fas fa-edit me-2"></i> Edit Jawaban
+                                            </a>
+                                        <% } else { %>
+                                            <button class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalKumpul<%= tugas.id %>">
+                                                <i class="fas fa-sync-alt me-2"></i> Ganti File
+                                            </button>
+                                        <% } %>
+
+                                    <% } else { %>
+                                        <button class="btn btn-info text-white" disabled><i class="fas fa-check me-2"></i> Menunggu Guru</button>
+                                    <% } %>
+
+                                <% } else { %>
+                                    <% if (tugas.soal_json) { %>
+                                        <a href="/siswa/tugas/kerjakan/<%= tugas.id %>" class="btn btn-primary fw-bold">
+                                            <i class="fas fa-pen-alt me-2"></i> Kerjakan Sekarang
+                                        </a>
+                                    <% } else { %>
+                                        <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalKumpul<%= tugas.id %>">
+                                            <i class="fas fa-upload me-2"></i> Upload Jawaban
+                                        </button>
+                                    <% } %>
+
+                                <% } %>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <% if (!tugas.soal_json) { %>
+                <div class="modal fade" id="modalKumpul<%= tugas.id %>" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold">Kumpul Tugas</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form action="/siswa/tugas/kumpul/<%= tugas.id %>" method="POST" enctype="multipart/form-data">
+                                <div class="modal-body">
+                                    <div class="alert alert-info small py-2">
+                                        <strong>Mapel:</strong> <%= tugas.nama_mapel %><br>
+                                        <strong>Judul:</strong> <%= tugas.judul %>
+                                    </div>
+
+                                    <% if (tugas.file_guru) { %>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small">Soal dari Guru:</label><br>
+                                            <a href="/uploads/tugas/<%= tugas.file_guru %>" target="_blank" class="btn btn-sm btn-outline-dark">
+                                                <i class="fas fa-download me-1"></i> Download Soal
+                                            </a>
+                                        </div>
+                                    <% } %>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">File Jawaban Kamu</label>
+                                        <input type="file" name="file_tugas" class="form-control" required>
+                                        <small class="text-muted">PDF, Word, atau Foto.</small>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">Catatan (Opsional)</label>
+                                        <textarea name="catatan" class="form-control" rows="2" placeholder="Pak, ini tugas saya..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary fw-bold">Kirim Jawaban 🚀</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+
+            <% }) %>
+        </div>
+    <% } %>
+
+</div>
+
+<%- include('../partials/footer') %>

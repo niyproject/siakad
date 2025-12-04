@@ -1,0 +1,134 @@
+<%- include('../../partials/header', { title: 'Sesi Absensi' }) %>
+<%- include('../../components/sidebar-guru', { activePage: 'jadwal', profil: profil }) %>
+
+<div class="main-content">
+
+    <%- include('../../components/navbar', { title: 'Sesi Absensi', user: profil }) %>
+
+    <div class="card card-custom bg-dark text-white border-0 mb-4">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="fw-bold mb-1"><%= mengajar.nama_mapel %></h4>
+                <p class="mb-0 opacity-75">Kelas <%= mengajar.nama_kelas %> &bull; <span id="jam-sekarang">--:--</span></p>
+            </div>
+            <a href="/dashboard" class="btn btn-outline-light rounded-pill px-4 fw-bold">
+                <i class="fas fa-stop-circle me-2"></i> Tutup Sesi
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-5">
+            <div class="card card-custom border-0 shadow-lg h-100 text-center">
+                <div class="card-body p-5 d-flex flex-column justify-content-center align-items-center">
+                    
+                    <h5 class="fw-bold text-dark mb-4">Scan untuk Hadir</h5>
+                    
+                    <div class="position-relative mb-4">
+                        <div id="loading-qr" class="spinner-border text-primary position-absolute top-50 start-50 translate-middle" role="status"></div>
+                        <img id="qr-image" src="" class="img-fluid border rounded p-2 shadow-sm" style="width: 280px; height: 280px; display: none;">
+                    </div>
+
+                    <div class="alert alert-info border-0 bg-info bg-opacity-10 py-2 px-3 rounded-pill mb-0">
+                        <i class="fas fa-sync-alt fa-spin me-2"></i> QR berubah setiap <span class="fw-bold">15 detik</span>
+                    </div>
+                    <small class="text-muted mt-3">Arahkan siswa untuk scan melalui menu <strong>"Scan Masuk"</strong> di dashboard mereka.</small>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card card-custom border-0 shadow-sm h-100">
+                <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold m-0 text-primary"><i class="fas fa-users me-2"></i> Kehadiran Siswa</h5>
+                    <span class="badge bg-light text-dark border">Total: <%= siswaList.length %> Siswa</span>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light sticky-top">
+                                <tr>
+                                    <th class="ps-4">Nama Siswa</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% siswaList.forEach(siswa => { %>
+                                <tr id="row-siswa-<%= siswa.id %>">
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark"><%= siswa.nama_lengkap %></div>
+                                        <small class="text-muted"><%= siswa.nis %></small>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if(siswa.status_hari_ini === 'H') { %>
+                                            <span class="badge bg-success rounded-pill px-3"><i class="fas fa-check me-1"></i> Hadir</span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary bg-opacity-25 text-muted rounded-pill px-3 status-badge">Belum Absen</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white p-3 text-center small text-muted">
+                    Daftar ini diperbarui secara otomatis (Real-time).
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    const idMengajar = '<%= mengajar.id %>';
+    
+    // 1. Fungsi Ganti QR (Tiap 15 Detik)
+    function refreshQR() {
+        fetch(`/absensi/api/generate-qr/${idMengajar}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const img = document.getElementById('qr-image');
+                    const loader = document.getElementById('loading-qr');
+                    
+                    img.src = data.qrImage;
+                    img.style.display = 'block';
+                    loader.style.display = 'none';
+                }
+            })
+            .catch(err => console.error("Gagal load QR"));
+    }
+
+    // 2. Fungsi Cek Scan Masuk (Tiap 3 Detik)
+    function cekScanMasuk() {
+        fetch(`/absensi/api/cek-scan/${idMengajar}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.ada_scan) {
+                    // Kalau ada yang scan, reload halaman biar listnya update jadi hijau
+                    // (Cara simpel biar gak ribet manipulasi DOM manual)
+                    location.reload(); 
+                }
+            });
+    }
+
+    // Jalankan Interval
+    refreshQR(); // Jalan pertama kali
+    setInterval(refreshQR, 15000); // Ganti QR tiap 15 detik (Biar gak bisa difoto)
+    setInterval(cekScanMasuk, 3000); // Cek siswa masuk tiap 3 detik
+
+    // Jam Digital Kecil
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('jam-sekarang').innerText = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+    }, 1000);
+
+</script>
+
+<%- include('../../partials/footer') %>
