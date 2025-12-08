@@ -35,9 +35,9 @@ CREATE TABLE `absensi` (
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
   KEY `siswa_id` (`siswa_id`),
-   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE,
-   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -49,7 +49,9 @@ LOCK TABLES `absensi` WRITE;
 set autocommit=0;
 INSERT INTO `absensi` VALUES
 (3,11,7,'2025-12-01','13:08:54','H',NULL,'2025-12-01 06:08:54'),
-(4,11,7,'2025-12-02','03:06:52','H',NULL,'2025-12-01 20:06:52');
+(4,11,7,'2025-12-02','03:06:52','H',NULL,'2025-12-01 20:06:52'),
+(5,11,7,'2025-12-07','17:31:54','H',NULL,'2025-12-07 10:31:54'),
+(6,13,7,'2025-12-07','17:32:40','H',NULL,'2025-12-07 10:32:40');
 /*!40000 ALTER TABLE `absensi` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -68,7 +70,7 @@ CREATE TABLE `admin` (
   `foto_profil` varchar(255) DEFAULT 'default.png',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
-   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -105,7 +107,7 @@ CREATE TABLE `guru` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `nip` (`nip`),
   KEY `user_id` (`user_id`),
-   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -206,10 +208,10 @@ CREATE TABLE `mengajar` (
   KEY `mapel_id` (`mapel_id`),
   KEY `kelas_id` (`kelas_id`),
   KEY `tahun_ajaran_id` (`tahun_ajaran_id`),
-   FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
-   FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`),
-   FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`),
-   FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`)
+  CONSTRAINT `1` FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
+  CONSTRAINT `2` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`),
+  CONSTRAINT `3` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`),
+  CONSTRAINT `4` FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -251,9 +253,9 @@ CREATE TABLE `nilai` (
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
   KEY `siswa_id` (`siswa_id`),
-   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`),
-   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`),
+  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -263,6 +265,9 @@ CREATE TABLE `nilai` (
 LOCK TABLES `nilai` WRITE;
 /*!40000 ALTER TABLE `nilai` DISABLE KEYS */;
 set autocommit=0;
+INSERT INTO `nilai` VALUES
+(1,11,7,60,68,0,88,87,80.4,NULL),
+(2,11,8,0,0,0,0,0,0,NULL);
 /*!40000 ALTER TABLE `nilai` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -289,9 +294,9 @@ CREATE TABLE `pengumpulan` (
   PRIMARY KEY (`id`),
   KEY `tugas_id` (`tugas_id`),
   KEY `siswa_id` (`siswa_id`),
-   FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id`) ON DELETE CASCADE,
-   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+  CONSTRAINT `1` FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -301,10 +306,6 @@ CREATE TABLE `pengumpulan` (
 LOCK TABLES `pengumpulan` WRITE;
 /*!40000 ALTER TABLE `pengumpulan` DISABLE KEYS */;
 set autocommit=0;
-INSERT INTO `pengumpulan` VALUES
-(10,16,7,NULL,NULL,0,'vkhjh','2025-12-01 19:01:31','[{\"id\":1,\"jawab\":\"A\"}]',0,'Sudah'),
-(11,17,7,NULL,NULL,50,'','2025-12-01 19:13:32','[{\"id\":1,\"jawab\":\"A\"},{\"id\":2,\"jawab\":\"vhvmvmn  m \"}]',0,'Sudah'),
-(12,18,7,NULL,NULL,100,'','2025-12-01 19:14:48','[{\"id\":1,\"jawab\":\"xczczxczczxcxzczx\"}]',0,'Sudah');
 /*!40000 ALTER TABLE `pengumpulan` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -331,8 +332,8 @@ CREATE TABLE `siswa` (
   UNIQUE KEY `nis` (`nis`),
   KEY `user_id` (`user_id`),
   KEY `kelas_id` (`kelas_id`),
-   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-   FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`)
+  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `2` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -366,6 +367,8 @@ CREATE TABLE `tahun_ajaran` (
   `tahun` varchar(20) NOT NULL,
   `semester` enum('Ganjil','Genap') NOT NULL,
   `status` tinyint(1) DEFAULT 0,
+  `tampilkan_uts` tinyint(1) DEFAULT 0,
+  `tampilkan_uas` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -378,7 +381,7 @@ LOCK TABLES `tahun_ajaran` WRITE;
 /*!40000 ALTER TABLE `tahun_ajaran` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `tahun_ajaran` VALUES
-(2,'2025/2026','Genap',1);
+(2,'2025/2026','Genap',1,0,0);
 /*!40000 ALTER TABLE `tahun_ajaran` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -397,13 +400,15 @@ CREATE TABLE `tugas` (
   `deskripsi` text DEFAULT NULL,
   `tipe_tugas` enum('Tugas Harian','PR','UTS','UAS','Proyek') NOT NULL,
   `file_guru` varchar(255) DEFAULT NULL,
-  `deadline` datetime NOT NULL,
+  `deadline` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `soal_json` longtext DEFAULT NULL,
+  `status_approval` enum('Direct','Pending','Online','Offline','Revisi') DEFAULT 'Direct',
+  `catatan_revisi` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
-   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -413,10 +418,6 @@ CREATE TABLE `tugas` (
 LOCK TABLES `tugas` WRITE;
 /*!40000 ALTER TABLE `tugas` DISABLE KEYS */;
 set autocommit=0;
-INSERT INTO `tugas` VALUES
-(16,11,'asdsa','','Tugas Harian',NULL,'2025-12-13 02:00:00','2025-12-01 19:00:50','[{\"id\":1,\"tipe\":\"pg\",\"pertanyaan\":\"jbxjbjk\",\"opsi\":{\"A\":\"sdfsdf\",\"B\":\"dfsds\"},\"kunci\":\"B\"}]'),
-(17,11,'mhjhkjgkj','','Tugas Harian',NULL,'2025-12-03 02:12:00','2025-12-01 19:13:12','[{\"id\":1,\"tipe\":\"pg\",\"pertanyaan\":\"xdcohh;dsfohsdiosf\",\"opsi\":{\"A\":\"sdsdfdfsdfs\",\"B\":\"sdffsfdsfdsfdsf\",\"C\":\"sdfsfssfd\"},\"kunci\":\"A\"},{\"id\":2,\"tipe\":\"essay\",\"pertanyaan\":\"dscsfsdfsfsfsf\",\"kunci\":\"\"}]'),
-(18,11,'xzzxzx','','Tugas Harian',NULL,'2025-12-04 02:14:00','2025-12-01 19:14:35','[{\"id\":1,\"tipe\":\"essay\",\"pertanyaan\":\"zxczxx.jx.jb.xc\",\"kunci\":\"\"}]');
 /*!40000 ALTER TABLE `tugas` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -472,4 +473,4 @@ commit;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2025-12-02  7:15:48
+-- Dump completed on 2025-12-08 18:09:54
