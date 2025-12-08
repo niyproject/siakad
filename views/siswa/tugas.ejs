@@ -25,15 +25,26 @@
                     let isSubmitted = tugas.pengumpulan_id ? true : false;
                     let isLate = new Date() > new Date(tugas.deadline); 
                     
-                    // KUNCI UTAMA: Cek Status Koreksi dari Guru
-                    // Nilai dianggap ada HANYA JIKA status_koreksi == 'Sudah'
+                    // Cek Status Koreksi
                     let isGraded = isSubmitted && tugas.status_koreksi === 'Sudah';
 
+                    // --- LOGIKA SAKLAR NILAI (Publishing) ---
+                    let isScoreVisible = true; 
+
+                    // Cek database saklar, kalau 0 berarti sembunyi
+                    if (tugas.tipe_tugas === 'UTS' && tugas.tampilkan_uts == 0) {
+                        isScoreVisible = false;
+                    }
+                    if (tugas.tipe_tugas === 'UAS' && tugas.tampilkan_uas == 0) {
+                        isScoreVisible = false;
+                    }
+
+                    // --- LOGIKA TAMPILAN KARTU ---
                     let cardBorder = 'border-warning';
                     let statusBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Belum Dikumpul</span>';
                     
                     if (!isSubmitted) {
-                        // BELUM KUMPUL
+                        // KASUS 1: BELUM KUMPUL
                         if (isLate) {
                             cardBorder = 'border-danger';
                             statusBadge = '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Terlambat</span>';
@@ -42,13 +53,20 @@
                             statusBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Belum Dikerjakan</span>';
                         }
                     } else {
-                        // SUDAH KUMPUL
+                        // KASUS 2: SUDAH KUMPUL
                         if (isGraded) {
-                            // SUDAH DINILAI GURU (Final)
-                            cardBorder = 'border-success'; 
-                            statusBadge = `<span class="badge bg-primary fs-6 px-3"><i class="fas fa-star text-warning me-2"></i>${tugas.nilai}</span>`;
+                            // SUDAH DINILAI GURU
+                            if (isScoreVisible) {
+                                // Nilai Boleh Tampil
+                                cardBorder = 'border-success'; 
+                                statusBadge = `<span class="badge bg-primary fs-6 px-3"><i class="fas fa-star text-warning me-2"></i>${tugas.nilai}</span>`;
+                            } else {
+                                // Nilai Disembunyikan Admin
+                                cardBorder = 'border-secondary';
+                                statusBadge = '<span class="badge bg-secondary text-white"><i class="fas fa-lock me-1"></i> Menunggu Rilis</span>';
+                            }
                         } else {
-                            // BELUM DINILAI GURU (Menunggu) -> Walaupun ada nilai otomatis di DB, user gak liat
+                            // BELUM DINILAI GURU
                             cardBorder = 'border-info';
                             statusBadge = '<span class="badge bg-info text-dark"><i class="fas fa-hourglass-half me-1"></i> Menunggu Koreksi</span>';
                         }
@@ -81,7 +99,7 @@
                                 <% } %>
                             </div>
 
-                            <% if (isGraded && tugas.komentar_guru) { %>
+                            <% if (isGraded && tugas.komentar_guru && isScoreVisible) { %>
                                 <div class="alert alert-light border border-info mb-3 rounded-3 p-3 position-relative">
                                     <i class="fas fa-quote-left text-info opacity-25 position-absolute top-0 start-0 m-2" style="font-size: 1.5rem;"></i>
                                     <div class="position-relative ms-3">
@@ -93,10 +111,16 @@
 
                             <div class="d-grid">
                                 <% if (isGraded) { %>
-                                    <button class="btn btn-light text-success fw-bold border-success" disabled>
-                                        <i class="fas fa-check-circle me-2"></i> Penilaian Selesai
-                                    </button>
-                                
+                                    <% if (isScoreVisible) { %>
+                                        <button class="btn btn-light text-success fw-bold border-success" disabled>
+                                            <i class="fas fa-check-circle me-2"></i> Penilaian Selesai
+                                        </button>
+                                    <% } else { %>
+                                        <button class="btn btn-light text-muted fw-bold border" disabled>
+                                            <i class="fas fa-lock me-2"></i> Nilai Belum Dirilis
+                                        </button>
+                                    <% } %>
+                                    
                                 <% } else if (!isSubmitted && isLate) { %>
                                     <button class="btn btn-secondary" disabled>
                                         <i class="fas fa-lock me-2"></i> Waktu Habis
@@ -173,7 +197,7 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="submit" class="btn btn-primary fw-bold">Kirim Jawaban 🚀</button>
+                                    <button type="submit" class="btn btn-primary fw-bold">Kirim Jawaban  🚀 </button>
                                 </div>
                             </form>
                         </div>

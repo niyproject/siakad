@@ -141,44 +141,107 @@ exports.prosesBuatTugas = async (req, res) => {
     const { id_mengajar } = req.params;
     const { judul, deskripsi, tipe_tugas, deadline } = req.body;
     const fileGuru = req.file ? req.file.filename : null;
+
+    // Persiapan variabel untuk Soal Manual (JSON)
     let { soal_teks, jenis_soal, kunci_jawaban, kunci_pg, soal_id } = req.body;
     let soalJson = null;
 
     try {
+        // --- 1. LOGIC PARSING SOAL MANUAL (JSON) ---
         if (soal_teks) {
+            // Pastikan format array (jika cuma 1 soal, nodejs bacanya string, jadi harus di-array-kan)
             if (!Array.isArray(soal_teks)) {
-                soal_teks = [soal_teks]; jenis_soal = [jenis_soal]; kunci_jawaban = [kunci_jawaban || '']; kunci_pg = [kunci_pg || '']; soal_id = [soal_id];
+                soal_teks = [soal_teks];
+                jenis_soal = [jenis_soal];
+                kunci_jawaban = [kunci_jawaban || ''];
+                kunci_pg = [kunci_pg || ''];
+                soal_id = [soal_id];
             }
+
+            // Loop untuk menyusun objek JSON
             const listSoal = soal_teks.map((tanya, index) => {
                 const tipe = jenis_soal[index];
                 const uid = soal_id[index];
-                let objSoal = { id: index + 1, tipe: tipe, pertanyaan: tanya };
+                
+                let objSoal = {
+                    id: index + 1,
+                    tipe: tipe,
+                    pertanyaan: tanya
+                };
 
                 if (tipe === 'pg') {
-                    const kunciBenar = kunci_pg[index];
-                    if (!kunciBenar || kunciBenar.trim() === '') throw new Error(`Soal No. ${index + 1} wajib ada kunci!`);
-                    
+                    // Ambil opsi jawaban (A, B, C, D) secara dinamis
                     const opsiRaw = req.body[`opsi_${uid}`];
                     let opsiRapih = {};
+                    
                     if (opsiRaw && Array.isArray(opsiRaw)) {
-                        opsiRaw.forEach((val, i) => { opsiRapih[String.fromCharCode(65 + i)] = val; });
-                    } else if (typeof opsiRaw === 'string') { opsiRapih['A'] = opsiRaw; }
+                        opsiRaw.forEach((val, i) => {
+                            opsiRapih[String.fromCharCode(65 + i)] = val; // 65 = A
+                        });
+                    } else if (typeof opsiRaw === 'string') {
+                        opsiRapih['A'] = opsiRaw;
+                    }
                     
                     objSoal.opsi = opsiRapih;
+                    
+                    // Pastikan kunci PG ada
+                    const kunciBenar = kunci_pg[index];
+                    if (!kunciBenar || kunciBenar.trim() === '') {
+                        throw new Error(`Soal No. ${index + 1} (PG) wajib ada Kunci Jawaban!`);
+                    }
                     objSoal.kunci = kunciBenar;
+
                 } else {
+                    // Essay
                     objSoal.kunci = kunci_jawaban[index];
                 }
+
                 return objSoal;
             });
+
             soalJson = JSON.stringify(listSoal);
         }
 
-        await db.query(`INSERT INTO tugas (mengajar_id, judul, deskripsi, tipe_tugas, deadline, file_guru, soal_json) VALUES (?, ?, ?, ?, ?, ?, ?)`, 
-            [id_mengajar, judul, deskripsi, tipe_tugas, deadline, fileGuru, soalJson]);
+        // --- 2. LOGIC APPROVAL & DEADLINE ---
+        let statusApp = 'Direct'; // Default: Langsung tayang (PR/Tugas Harian)
+        let finalDeadline = deadline; // Default: Ambil dari inputan guru
 
-        res.redirect(`/guru/tugas/${id_mengajar}`);
-    } catch (error) { res.send(`<script>alert("${error.message}"); window.history.back();</script>`); }
+        // Kalau UTS atau UAS, TAHAN DULU dan NOL-KAN DEADLINE
+        if (tipe_tugas === 'UTS' || tipe_tugas === 'UAS') {
+            statusApp = 'Pending';
+            finalDeadline = null; // Admin yang akan set deadline nanti
+        } else {
+            // Validasi jika PR/Tugas Harian tapi deadline kosong
+            if (!finalDeadline) {
+                return res.send('<script>alert("Untuk Tugas Harian/PR, Deadline wajib diisi!"); window.history.back();</script>');
+            }
+        }
+
+        // --- 3. INSERT KE DATABASE ---
+        await db.query(
+            `INSERT INTO tugas (mengajar_id, judul, deskripsi, tipe_tugas, deadline, file_guru, soal_json, status_approval) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
+            [id_mengajar, judul, deskripsi, tipe_tugas, finalDeadline, fileGuru, soalJson, statusApp]
+        );
+
+        // --- 4. RESPONSE / REDIRECT ---
+        if (statusApp === 'Pending') {
+            // Kalau Pending, kasih alert ke Guru
+            res.send(`
+                <script>
+                    alert("Berhasil disimpan! Karena ini ${tipe_tugas}, soal akan diverifikasi oleh Admin terlebih dahulu (Status: Pending). Deadline akan ditentukan oleh Admin.");
+                    window.location.href = "/guru/tugas/${id_mengajar}";
+                </script>
+            `);
+        } else {
+            // Kalau Direct, langsung balik aja
+            res.redirect(`/guru/tugas/${id_mengajar}`);
+        }
+
+    } catch (error) {
+        console.error(error);
+        res.send(`<script>alert("Gagal membuat tugas: ${error.message}"); window.history.back();</script>`);
+    }
 };
 
 // --- BAGIAN YANG TADI HILANG (EDIT & HAPUS) ---
@@ -214,31 +277,48 @@ exports.halamanEditTugas = async (req, res) => {
 exports.prosesEditTugas = async (req, res) => {
     const { id_tugas } = req.params;
     const { judul, deskripsi, tipe_tugas, deadline } = req.body;
+    
+    // Persiapan variabel Soal Manual (Sama seperti Buat Tugas)
     let { soal_teks, jenis_soal, kunci_jawaban, kunci_pg, soal_id } = req.body;
     let soalJson = null;
 
     try {
+        // --- 1. PROSES FILE BARU (Jika Ada) ---
         let fileUpdateQuery = "";
-        let params = [judul, deskripsi, tipe_tugas, deadline];
+        let params = [judul, deskripsi, tipe_tugas]; // Array parameter awal
+
+        // Logic Deadline (Hanya update deadline jika bukan UTS/UAS atau jika Admin sudah set online)
+        // Tapi untuk simplifikasi di sisi Guru saat edit:
+        // Jika Guru edit UTS/UAS, deadline biarkan NULL atau nilai lama (jangan diubah lewat form ini jika hidden)
+        // Kita tangani deadline di bawah.
+        
+        let finalDeadline = deadline || null; 
 
         if (req.file) {
+            // Hapus file lama dulu
             const [old] = await db.query('SELECT file_guru FROM tugas WHERE id = ?', [id_tugas]);
             if (old[0].file_guru) {
                 const p = path.join(__dirname, '../public/uploads/tugas/', old[0].file_guru);
                 if (fs.existsSync(p)) fs.unlinkSync(p);
             }
             fileUpdateQuery = ", file_guru = ?";
-            params.push(req.file.filename);
+            // Params di-push nanti urutannya harus pas
         }
 
+        // --- 2. LOGIC PARSING SOAL MANUAL ---
         if (soal_teks) {
             if (!Array.isArray(soal_teks)) {
-                soal_teks = [soal_teks]; jenis_soal = [jenis_soal]; kunci_jawaban = [kunci_jawaban || '']; kunci_pg = [kunci_pg || '']; soal_id = [soal_id];
+                soal_teks = [soal_teks];
+                jenis_soal = [jenis_soal];
+                kunci_jawaban = [kunci_jawaban || ''];
+                kunci_pg = [kunci_pg || ''];
+                soal_id = [soal_id];
             }
             const listSoal = soal_teks.map((tanya, index) => {
                 const tipe = jenis_soal[index];
                 const uid = soal_id[index];
                 let objSoal = { id: index + 1, tipe: tipe, pertanyaan: tanya };
+
                 if (tipe === 'pg') {
                     const opsiRaw = req.body[`opsi_${uid}`];
                     let opsiRapih = {};
@@ -254,16 +334,60 @@ exports.prosesEditTugas = async (req, res) => {
             });
             soalJson = JSON.stringify(listSoal);
         }
-        
-        params.push(soalJson);
-        params.push(id_tugas);
 
-        await db.query(`UPDATE tugas SET judul=?, deskripsi=?, tipe_tugas=?, deadline=? ${fileUpdateQuery}, soal_json=? WHERE id=?`, params);
+        // --- 3. LOGIC STATUS REVISI -> PENDING ---
+        // Cek status saat ini di database
+        const [cek] = await db.query('SELECT status_approval, deadline FROM tugas WHERE id = ?', [id_tugas]);
+        let statusNow = cek[0].status_approval;
+        let dbDeadline = cek[0].deadline;
+
+        // Jika Guru sedang memperbaiki tugas yang statusnya 'Revisi'
+        if (statusNow === 'Revisi') {
+            statusNow = 'Pending'; // Kembalikan ke Admin
+        }
+
+        // Jika UTS/UAS, Guru tidak bisa set deadline lewat form edit (karena inputnya hidden/disabled)
+        // Jadi kita pakai deadline lama dari DB, atau NULL jika statusnya Pending
+        if (tipe_tugas === 'UTS' || tipe_tugas === 'UAS') {
+            finalDeadline = dbDeadline; 
+        }
+
+        // --- 4. SUSUN QUERY UPDATE ---
+        // Urutan params: judul, deskripsi, tipe_tugas, deadline, [file_guru], soal_json, status_approval, id
         
+        params.push(finalDeadline); // deadline
+        
+        if (req.file) {
+            params.push(req.file.filename); // file_guru
+        }
+        
+        params.push(soalJson);      // soal_json
+        params.push(statusNow);     // status_approval (Update status)
+        params.push(id_tugas);      // WHERE id
+
+        await db.query(
+            `UPDATE tugas SET judul=?, deskripsi=?, tipe_tugas=?, deadline=? ${fileUpdateQuery}, soal_json=?, status_approval=? WHERE id=?`, 
+            params
+        );
+        
+        // --- 5. REDIRECT ---
         const [t] = await db.query('SELECT mengajar_id FROM tugas WHERE id = ?', [id_tugas]);
-        res.redirect(`/guru/tugas/${t[0].mengajar_id}`);
+        
+        if (statusNow === 'Pending' && (tipe_tugas === 'UTS' || tipe_tugas === 'UAS')) {
+             res.send(`
+                <script>
+                    alert("Perubahan disimpan! Tugas dikirim kembali ke Admin untuk verifikasi.");
+                    window.location.href = "/guru/tugas/${t[0].mengajar_id}";
+                </script>
+            `);
+        } else {
+            res.redirect(`/guru/tugas/${t[0].mengajar_id}`);
+        }
 
-    } catch (error) { res.send('Gagal update tugas.'); }
+    } catch (error) {
+        console.error(error);
+        res.send('Gagal update tugas: ' + error.message);
+    }
 };
 
 // Lihat Pengumpulan (Jawaban Siswa)

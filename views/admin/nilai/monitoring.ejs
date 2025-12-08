@@ -1,0 +1,36 @@
+<%- include('../../partials/header', { title: 'Monitoring Nilai' }) %>
+<%- include('../../components/sidebar-admin', { activePage: 'monitoring' }) %>
+
+<div class="main-content">
+    <%- include('../../components/navbar', { title: 'Monitoring Nilai Siswa', user: user }) %>
+
+    <div class="alert alert-info border-0 shadow-sm mb-4">
+        <i class="fas fa-info-circle me-2"></i> Periksa nilai yang sudah diinput Guru sebelum merilisnya ke Siswa.
+    </div>
+
+    <div class="row g-3">
+        <% list.forEach(item => { %>
+        <div class="col-md-6 col-lg-4">
+            <a href="/admin/monitoring-nilai/detail/<%= item.mengajar_id %>" class="text-decoration-none">
+                <div class="card card-custom h-100 border-0 shadow-sm hover-shadow">
+                    <div class="card-body p-4">
+                        <span class="badge bg-primary mb-2"><%= item.nama_kelas %></span>
+                        <h6 class="fw-bold text-dark"><%= item.nama_mapel %></h6>
+                        <small class="text-muted d-block mb-3"><%= item.nama_guru %></small>
+                        
+                        <div class="d-flex justify-content-between small border-top pt-3">
+                            <span class="<%= item.count_uts > 0 ? 'text-success' : 'text-muted' %>">
+                                UTS: <strong><%= item.count_uts %></strong> Data
+                            </span>
+                            <span class="<%= item.count_uas > 0 ? 'text-success' : 'text-muted' %>">
+                                UAS: <strong><%= item.count_uas %></strong> Data
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <% }) %>
+    </div>
+</div>
+<%- include('../../partials/footer') %>

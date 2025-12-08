@@ -27,21 +27,52 @@ exports.index = async (req, res) => {
             const kelasId = dataUser.kelas_id;
 
             // 2. Ambil Daftar Nilai Siswa Ini (Buat Tabel Laporan)
-            const sqlNilai = `
-                SELECT mapel.nama_mapel, guru.nama_lengkap as nama_guru, nilai.*
-                FROM nilai
-                JOIN mengajar ON nilai.mengajar_id = mengajar.id
-                JOIN mapel ON mengajar.mapel_id = mapel.id
-                JOIN guru ON mengajar.guru_id = guru.id
-                WHERE nilai.siswa_id = ?
-            `;
-            const [nilaiList] = await db.query(sqlNilai, [siswaId]);
+// ... di dalam if (role === 'siswa') ...
 
-            // 3. Hitung Rata-Rata Nilai Diri Sendiri
-            let totalNilaiSendiri = 0;
-            nilaiList.forEach(n => totalNilaiSendiri += n.nilai_akhir);
-            const rataRata = nilaiList.length > 0 ? (totalNilaiSendiri / nilaiList.length).toFixed(2) : 0;
+// MODIFIKASI: Ambil Nilai dengan Cek Status Rilis di Tahun Ajaran
+const sqlNilai = `
+    SELECT 
+        mapel.nama_mapel, 
+        guru.nama_lengkap as nama_guru,
+        nilai.uh1, nilai.uh2,
+        
+        -- Logika UTS: Kalau tampilkan_uts = 1 baru muncul, kalau nggak jadi NULL
+        (CASE WHEN tahun_ajaran.tampilkan_uts = 1 THEN nilai.uts ELSE NULL END) as uts,
+        
+        -- Logika UAS: Kalau tampilkan_uas = 1 baru muncul
+        (CASE WHEN tahun_ajaran.tampilkan_uas = 1 THEN nilai.uas ELSE NULL END) as uas,
+        
+        -- Logika Nilai Akhir: Kalau UTS atau UAS disembunyikan, Nilai Akhir juga sembunyi (biar gak bocor dari rata-rata)
+        (CASE 
+            WHEN tahun_ajaran.tampilkan_uts = 1 AND tahun_ajaran.tampilkan_uas = 1 
+            THEN nilai.nilai_akhir 
+            ELSE NULL 
+        END) as nilai_akhir
 
+    FROM nilai
+    JOIN mengajar ON nilai.mengajar_id = mengajar.id
+    JOIN mapel ON mengajar.mapel_id = mapel.id
+    JOIN guru ON mengajar.guru_id = guru.id
+    JOIN tahun_ajaran ON mengajar.tahun_ajaran_id = tahun_ajaran.id
+    WHERE nilai.siswa_id = ? AND tahun_ajaran.status = 1
+`;
+
+const [nilaiList] = await db.query(sqlNilai, [siswaId]);
+
+// Hitung Rata-Rata (Hanya hitung mapel yang nilainya sudah rilis full)
+let totalNilaiSendiri = 0;
+let jumlahMapelRilis = 0;
+
+nilaiList.forEach(n => {
+    if (n.nilai_akhir !== null) { // Cuma hitung yang sudah rilis
+        totalNilaiSendiri += n.nilai_akhir;
+        jumlahMapelRilis++;
+    }
+});
+
+const rataRata = jumlahMapelRilis > 0 ? (totalNilaiSendiri / jumlahMapelRilis).toFixed(2) : 0;
+
+// ... lanjut ke logic ranking ...
             // 4. LOGIC RANKING KELAS (Simple Version)
             // Ambil total nilai semua siswa di kelas ini, urutkan dari yang terbesar
             const sqlRanking = `

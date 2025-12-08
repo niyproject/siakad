@@ -119,24 +119,45 @@
                         <th class="text-center fw-bold text-primary pe-4">Nilai Akhir</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <% if (nilaiList.length === 0) { %>
-                        <tr><td colspan="6" class="text-center py-5 text-muted">Belum ada nilai.</td></tr>
-                    <% } else { %>
-                        <% nilaiList.forEach(nilai => { %>
-                        <tr>
-                            <td class="ps-4 fw-bold"><%= nilai.nama_mapel %></td>
-                            <td class="small text-muted"><%= nilai.nama_guru %></td>
-                            <td class="text-center"><%= nilai.uh1 %></td>
-                            <td class="text-center"><%= nilai.uts %></td>
-                            <td class="text-center"><%= nilai.uas %></td>
-                            <td class="text-center fw-bold fs-5 text-primary pe-4">
-                                <%= nilai.nilai_akhir ? nilai.nilai_akhir.toFixed(0) : 0 %>
-                            </td>
-                        </tr>
-                        <% }) %>
-                    <% } %>
-                </tbody>
+
+<tbody>
+    <% if (nilaiList.length === 0) { %>
+        <tr><td colspan="6" class="text-center py-5 text-muted">Belum ada data nilai.</td></tr>
+    <% } else { %>
+        <% nilaiList.forEach(nilai => { %>
+        <tr>
+            <td class="ps-4 fw-bold"><%= nilai.nama_mapel %></td>
+            <td class="small text-muted"><%= nilai.nama_guru %></td>
+            
+            <td class="text-center"><%= nilai.uh1 %></td>
+            
+            <td class="text-center">
+                <% if (nilai.uts === null) { %>
+                    <i class="fas fa-lock text-muted opacity-50" title="Belum Rilis"></i>
+                <% } else { %>
+                    <%= nilai.uts %>
+                <% } %>
+            </td>
+
+            <td class="text-center">
+                <% if (nilai.uas === null) { %>
+                    <i class="fas fa-lock text-muted opacity-50" title="Belum Rilis"></i>
+                <% } else { %>
+                    <%= nilai.uas %>
+                <% } %>
+            </td>
+
+            <td class="text-center fw-bold fs-5 text-primary pe-4">
+                <% if (nilai.nilai_akhir === null) { %>
+                    <span class="badge bg-light text-muted border">-</span>
+                <% } else { %>
+                    <%= nilai.nilai_akhir.toFixed(0) %>
+                <% } %>
+            </td>
+        </tr>
+        <% }) %>
+    <% } %>
+</tbody>
             </table>
         </div>
     </div>

@@ -2,8 +2,7 @@
 <%- include('../../components/sidebar-guru', { activePage: 'tugas', profil: profil }) %>
 
 <div class="main-content">
-
-    <%- include('../../components/navbar', { title: 'Kelola Tugas', user: profil }) %>
+    <%- include('../../components/navbar', { title: 'Kelola Tugas & PR', user: profil }) %>
 
     <div class="card card-custom bg-primary text-white border-0 mb-4">
         <div class="card-body p-4 d-flex justify-content-between align-items-center">
@@ -30,22 +29,40 @@
             <div class="col-md-6">
                 <div class="card card-custom h-100 border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between mb-3">
-                            <% 
-                                let badgeColor = 'bg-secondary';
-                                if(tugas.tipe_tugas === 'PR') badgeColor = 'bg-info';
-                                if(tugas.tipe_tugas === 'UTS') badgeColor = 'bg-warning text-dark';
-                                if(tugas.tipe_tugas === 'UAS') badgeColor = 'bg-danger';
-                                if(tugas.tipe_tugas === 'Tugas Harian') badgeColor = 'bg-success';
-                            %>
-                            <span class="badge <%= badgeColor %> rounded-pill px-3"><%= tugas.tipe_tugas %></span>
-                            <small class="text-muted"><i class="far fa-clock me-1"></i> Deadline: <%= tugas.deadline_fmt %></small>
+                        
+                        <div class="d-flex justify-content-between mb-2 align-items-center">
+                            <span class="badge bg-light text-dark border"><%= tugas.nama_mapel %></span>
+                            
+                            <% if (tugas.status_approval === 'Online') { %>
+                                <span class="badge bg-success"><i class="fas fa-wifi me-1"></i> Ujian Online</span>
+                            <% } else if (tugas.status_approval === 'Offline') { %>
+                                <span class="badge bg-dark"><i class="fas fa-file-alt me-1"></i> Ujian Offline</span>
+                            <% } else if (tugas.status_approval === 'Pending' && (tugas.tipe_tugas === 'UTS' || tugas.tipe_tugas === 'UAS')) { %>
+                                <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Verifikasi Admin</span>
+                            <% } else if (tugas.status_approval === 'Revisi') { %>
+                                <span class="badge bg-danger"><i class="fas fa-exclamation-triangle me-1"></i> Perlu Revisi</span>
+                            <% } else { %>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary"><%= tugas.tipe_tugas %></span>
+                            <% } %>
                         </div>
 
                         <h5 class="fw-bold text-dark mb-2"><%= tugas.judul %></h5>
                         <p class="text-muted small mb-3 text-truncate"><%= tugas.deskripsi %></p>
 
-                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <% if (tugas.deadline) { %>
+                            <div class="small text-muted mb-3">
+                                <i class="far fa-clock me-1"></i> Deadline: <%= tugas.deadline_fmt %>
+                            </div>
+                        <% } %>
+
+                        <% if (tugas.status_approval === 'Revisi') { %>
+                            <div class="alert alert-danger small p-2 mb-3 border-danger">
+                                <strong><i class="fas fa-comment-dots me-1"></i> Admin:</strong> "<%= tugas.catatan_revisi %>"<br>
+                                <a href="/guru/tugas/edit/<%= tugas.id %>" class="fw-bold text-danger text-decoration-underline">Klik disini untuk perbaiki</a>
+                            </div>
+                        <% } %>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
                             <span class="small fw-bold text-primary">
                                 <i class="fas fa-users me-1"></i> <%= tugas.total_kumpul %> Siswa Mengumpulkan
                             </span>
@@ -73,11 +90,10 @@
 
 <div class="modal fade" id="modalBuatTugas" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        
         <form id="formTugas" class="modal-content" action="/guru/tugas/<%= mengajar.id %>" method="POST" enctype="multipart/form-data">
             
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold">📝 Buat Tugas Baru</h5>
+                <h5 class="modal-title fw-bold"> 📝  Buat Tugas Baru</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             
@@ -90,11 +106,11 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold small">Tipe Tugas</label>
-                        <select name="tipe_tugas" class="form-select" required>
+                        <select name="tipe_tugas" class="form-select" id="selectTipeTugas" required onchange="toggleDeadline()">
                             <option value="Tugas Harian">Tugas Harian</option>
                             <option value="PR">PR</option>
-                            <option value="UTS">UTS</option>
-                            <option value="UAS">UAS</option>
+                            <option value="UTS">UTS (Ujian Tengah Semester)</option>
+                            <option value="UAS">UAS (Ujian Akhir Semester)</option>
                         </select>
                     </div>
                 </div>
@@ -104,10 +120,10 @@
                     <textarea name="deskripsi" class="form-control" rows="2" placeholder="Kerjakan dengan teliti..."></textarea>
                 </div>
 
-                <div class="row mb-4">
+                <div class="row mb-4" id="inputDeadlineWrapper">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold small">Deadline</label>
-                        <input type="datetime-local" name="deadline" class="form-control" required>
+                        <label class="form-label fw-bold small">Deadline Pengumpulan</label>
+                        <input type="datetime-local" name="deadline" class="form-control">
                     </div>
                 </div>
 
@@ -150,7 +166,8 @@
 
                 </div>
 
-            </div> <div class="modal-footer">
+            </div> 
+            <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
                 <button type="submit" class="btn btn-primary fw-bold">Bagikan Tugas</button>
             </div>
@@ -160,9 +177,20 @@
 </div>
 
 <script>
-    // --- SCRIPT DINAMIS V3.0 (Validasi & Dynamic Options) ---
+    // --- SCRIPT TOGGLE DEADLINE ---
+    function toggleDeadline() {
+        const tipe = document.getElementById('selectTipeTugas').value;
+        const wrapper = document.getElementById('inputDeadlineWrapper');
+        
+        // Kalau UTS atau UAS, sembunyikan deadline (karena Admin yg atur)
+        if (tipe === 'UTS' || tipe === 'UAS') {
+            wrapper.style.display = 'none';
+        } else {
+            wrapper.style.display = 'block';
+        }
+    }
 
-    // 1. VALIDASI SEBELUM SUBMIT (Agar Kunci PG tidak kosong)
+    // --- SCRIPT SOAL MANUAL (COPY DARI SEBELUMNYA) ---
     document.getElementById('formTugas').addEventListener('submit', function(e) {
         const jenisSoal = document.getElementsByName('jenis_soal[]');
         const kunciPG = document.getElementsByName('kunci_pg[]'); 
@@ -171,18 +199,14 @@
             if (jenisSoal[i].value === 'pg') {
                 if (kunciPG[i].value === "") {
                     e.preventDefault(); 
-                    alert(`⚠️ PERINGATAN!\n\nSoal No. ${i + 1} (Pilihan Ganda) belum ada Kunci Jawabannya.\nMohon pilih jawaban yang benar dulu.`);
+                    alert(` ⚠️  PERINGATAN!\n\nSoal No. ${i + 1} (Pilihan Ganda) belum ada Kunci Jawabannya.`);
                     kunciPG[i].focus();
-                    kunciPG[i].classList.add('border', 'border-danger');
                     return; 
-                } else {
-                    kunciPG[i].classList.remove('border', 'border-danger');
                 }
             }
         }
     });
 
-    // 2. Trigger Otomatis Tab Manual
     const tabManual = document.getElementById('pills-manual-tab');
     tabManual.addEventListener('shown.bs.tab', function (event) {
         const container = document.getElementById('container-soal');
@@ -191,7 +215,6 @@
         }
     });
 
-    // 3. Fungsi Tambah Kartu Soal
     function tambahSoal() {
         const container = document.getElementById('container-soal');
         const nomor = container.children.length + 1;
@@ -235,7 +258,6 @@
         container.insertAdjacentHTML('beforeend', html);
     }
 
-    // 4. Fungsi Tambah Opsi (A, B, C...)
     function tambahOpsi(uniqueId) {
         const card = document.getElementById(`soal-${uniqueId}`);
         const container = card.querySelector('.list-opsi-container');
@@ -253,7 +275,6 @@
         refreshDropdownKunci(card);
     }
 
-    // 5. Fungsi Hapus Opsi
     function hapusOpsi(btn, uniqueId) {
         const card = document.getElementById(`soal-${uniqueId}`);
         btn.closest('.opsi-item').remove();
@@ -261,7 +282,6 @@
         refreshDropdownKunci(card);
     }
 
-    // 6. Re-Index Huruf
     function reindexOpsi(card) {
         const items = card.querySelectorAll('.opsi-item');
         items.forEach((item, index) => {
@@ -271,7 +291,6 @@
         });
     }
 
-    // 7. Update Dropdown Kunci
     function refreshDropdownKunci(card) {
         const dropdown = card.querySelector('.input-kunci-pg');
         const items = card.querySelectorAll('.opsi-item');
@@ -295,7 +314,6 @@
         refreshDropdownKunci(card);
     }
 
-    // 8. Toggle Tampilan Essay/PG
     function toggleOpsi(selectElement) {
         const card = selectElement.closest('.soal-item');
         const areaOpsi = card.querySelector('.area-opsi');

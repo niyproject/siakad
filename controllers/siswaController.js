@@ -22,37 +22,67 @@ exports.lihatJadwal = async (req, res) => {
 };
 
 // Lihat Daftar Tugas
+// controllers/siswaController.js
+
 exports.lihatTugas = async (req, res) => {
     const siswaId = req.session.user.id;
+
     try {
+        // 1. Ambil Profil Siswa
         const [siswaRows] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
         const profil = siswaRows[0];
 
-        // PENTING: Ambil kolom status_koreksi
+        // 2. Query Daftar Tugas (Modified)
         const sql = `
             SELECT 
                 tugas.*, 
                 mapel.nama_mapel, 
                 guru.nama_lengkap as nama_guru,
                 DATE_FORMAT(tugas.deadline, '%d %b %Y %H:%i') as deadline_fmt,
+                
+                -- Data Pengumpulan Siswa
                 pengumpulan.id as pengumpulan_id,
                 pengumpulan.tanggal_kumpul,
                 pengumpulan.nilai,
                 pengumpulan.komentar_guru,
                 pengumpulan.catatan_siswa,
-                pengumpulan.status_koreksi -- <--- INI WAJIB ADA
+                pengumpulan.status_koreksi,
+
+                -- Data Saklar Rilis Nilai (Dari Tahun Ajaran)
+                tahun_ajaran.tampilkan_uts,
+                tahun_ajaran.tampilkan_uas
+
             FROM tugas
             JOIN mengajar ON tugas.mengajar_id = mengajar.id
             JOIN mapel ON mengajar.mapel_id = mapel.id
             JOIN guru ON mengajar.guru_id = guru.id
+            JOIN tahun_ajaran ON mengajar.tahun_ajaran_id = tahun_ajaran.id
+            
             LEFT JOIN pengumpulan ON tugas.id = pengumpulan.tugas_id AND pengumpulan.siswa_id = ?
+            
             WHERE mengajar.kelas_id = ?
+            
+            -- FILTER PENTING: Hanya tampilkan PR biasa (Direct) atau Ujian Online
+            -- Tugas 'Pending' (blm di-acc) dan 'Offline' (ujian kertas) TIDAK MUNCUL
+            AND (tugas.status_approval = 'Direct' OR tugas.status_approval = 'Online')
+
             ORDER BY tugas.deadline DESC
         `;
+
         const [tugasList] = await db.query(sql, [profil.id, profil.kelas_id]);
 
-        res.render('siswa/tugas', { tugasList: tugasList, user: req.session.user, profil: profil, title: 'Tugas & PR' });
-    } catch (error) { res.send('Error memuat tugas'); }
+        // 3. Render View
+        res.render('siswa/tugas', { 
+            tugasList: tugasList, 
+            user: req.session.user, 
+            profil: profil, 
+            title: 'Tugas & PR' 
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.send('Error memuat tugas siswa.');
+    }
 };
 
 // Proses Upload Tugas (File)

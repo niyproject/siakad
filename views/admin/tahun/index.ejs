@@ -3,12 +3,12 @@
 
 <div class="main-content">
 
-    <%- include('../../components/navbar', { title: 'Tahun Ajaran', user: user }) %>
+    <%- include('../../components/navbar', { title: 'Tahun Ajaran & Rilis Nilai', user: user }) %>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h5 class="fw-bold text-primary mb-1">Periode Akademik</h5>
-            <small class="text-muted">Atur tahun ajaran dan semester aktif.</small>
+            <small class="text-muted">Atur tahun aktif dan jadwal rilis nilai rapor.</small>
         </div>
         <button class="btn btn-primary shadow-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalTambah">
             <i class="fas fa-plus me-2"></i> Buka Tahun Baru
@@ -18,8 +18,7 @@
     <div class="alert alert-light border-0 shadow-sm d-flex align-items-center mb-4" style="background: #fff3cd; color: #856404;">
         <i class="fas fa-exclamation-triangle fa-lg me-3"></i>
         <div>
-            <strong>Penting:</strong> Mengaktifkan tahun ajaran baru akan otomatis <u>menonaktifkan</u> tahun ajaran sebelumnya.
-            Data jadwal dan nilai akan mengikuti tahun yang aktif.
+            <strong>Penting:</strong> Tombol "Rilis Nilai" hanya berfungsi pada Tahun Ajaran yang sedang <strong>AKTIF</strong>.
         </div>
     </div>
 
@@ -29,9 +28,12 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th class="ps-4 py-3" style="width: 25%">Tahun Pelajaran</th>
-                            <th style="width: 20%">Semester</th>
-                            <th style="width: 25%">Status Sistem</th>
+                            <th class="ps-4 py-3" style="width: 20%">Tahun / Semester</th>
+                            <th class="text-center" style="width: 15%">Status Sistem</th>
+                            
+                            <th class="text-center" style="width: 20%">Rilis Nilai UTS</th>
+                            <th class="text-center" style="width: 20%">Rilis Nilai UAS</th>
+                            
                             <th class="text-end pe-4">Aksi</th>
                         </tr>
                     </thead>
@@ -40,10 +42,7 @@
                         <tr class="<%= item.status == 1 ? 'bg-success bg-opacity-10' : '' %>">
                             
                             <td class="ps-4">
-                                <span class="fw-bold fs-5 text-dark"><%= item.tahun %></span>
-                            </td>
-                            
-                            <td>
+                                <div class="fw-bold fs-5 text-dark"><%= item.tahun %></div>
                                 <% if(item.semester == 'Ganjil') { %>
                                     <span class="badge bg-primary rounded-pill px-3">GANJIL</span>
                                 <% } else { %>
@@ -51,17 +50,45 @@
                                 <% } %>
                             </td>
                             
-                            <td>
+                            <td class="text-center">
                                 <% if (item.status == 1) { %>
-                                    <div class="d-flex align-items-center text-success fw-bold">
+                                    <div class="d-flex align-items-center justify-content-center text-success fw-bold">
                                         <div class="spinner-grow spinner-grow-sm me-2" role="status"></div>
-                                        SEDANG AKTIF
+                                        AKTIF
                                     </div>
                                 <% } else { %>
                                     <a href="/admin/tahun/aktifkan/<%= item.id %>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold">
                                         <i class="fas fa-power-off me-1"></i> Aktifkan
                                     </a>
                                 <% } %>
+                            </td>
+
+                            <td class="text-center">
+                                <% if (item.status == 1) { %>
+                                    <% if (item.tampilkan_uts == 1) { %>
+                                        <a href="/admin/tahun/toggle-nilai/<%= item.id %>/uts" class="btn btn-sm btn-primary fw-bold shadow-sm w-100">
+                                            <i class="fas fa-eye me-1"></i> DITAMPILKAN
+                                        </a>
+                                    <% } else { %>
+                                        <a href="/admin/tahun/toggle-nilai/<%= item.id %>/uts" class="btn btn-sm btn-secondary opacity-75 w-100">
+                                            <i class="fas fa-eye-slash me-1"></i> SEMBUNYI
+                                        </a>
+                                    <% } %>
+                                <% } else { %> <span class="text-muted">-</span> <% } %>
+                            </td>
+
+                            <td class="text-center">
+                                <% if (item.status == 1) { %>
+                                    <% if (item.tampilkan_uas == 1) { %>
+                                        <a href="/admin/tahun/toggle-nilai/<%= item.id %>/uas" class="btn btn-sm btn-primary fw-bold shadow-sm w-100">
+                                            <i class="fas fa-eye me-1"></i> DITAMPILKAN
+                                        </a>
+                                    <% } else { %>
+                                        <a href="/admin/tahun/toggle-nilai/<%= item.id %>/uas" class="btn btn-sm btn-secondary opacity-75 w-100">
+                                            <i class="fas fa-eye-slash me-1"></i> SEMBUNYI
+                                        </a>
+                                    <% } %>
+                                <% } else { %> <span class="text-muted">-</span> <% } %>
                             </td>
                             
                             <td class="text-end pe-4">
@@ -70,7 +97,7 @@
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 <% } else { %>
-                                    <span class="text-muted small fst-italic">Terkunci</span>
+                                    <span class="text-muted small fst-italic">Locked</span>
                                 <% } %>
                             </td>
                         </tr>

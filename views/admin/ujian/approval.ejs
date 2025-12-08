@@ -1,0 +1,298 @@
+<%- include('../../partials/header', { title: 'Validasi Ujian' }) %>
+<%- include('../../components/sidebar-admin', { activePage: 'approval' }) %>
+
+<div class="main-content">
+    <%- include('../../components/navbar', { title: 'Validasi & Riwayat Ujian', user: user }) %>
+
+    <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active rounded-pill px-4 shadow-sm" id="pills-pending-tab" data-bs-toggle="pill" data-bs-target="#pills-pending" type="button">
+                <i class="fas fa-hourglass-half me-2"></i> Menunggu Persetujuan 
+                <% if(pending.length > 0) { %>
+                    <span class="badge bg-danger ms-2"><%= pending.length %></span>
+                <% } %>
+            </button>
+        </li>
+        <li class="nav-item ms-2">
+            <button class="nav-link rounded-pill px-4 border bg-white" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button">
+                <i class="fas fa-history me-2"></i> Riwayat Keputusan
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+        
+        <div class="tab-pane fade show active" id="pills-pending">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-white p-4 border-0">
+                    <h5 class="fw-bold m-0 text-primary"><i class="fas fa-inbox me-2"></i> Masuk Antrian</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3">Guru & Mapel</th>
+                                    <th>Judul & Tipe</th>
+                                    <th>Status Waktu</th>
+                                    <th class="text-end pe-4">Tindakan Admin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (pending.length === 0) { %>
+                                    <tr><td colspan="4" class="text-center py-5 text-muted">Aman! Tidak ada pengajuan soal baru.</td></tr>
+                                <% } else { %>
+                                    <% pending.forEach(item => { %>
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="fw-bold text-dark"><%= item.nama_mapel %></div>
+                                            <small class="text-muted"><%= item.nama_guru %> (<%= item.nama_kelas %>)</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-warning text-dark mb-1"><%= item.tipe_tugas %></span><br>
+                                            <%= item.judul %>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted small fst-italic">Deadline belum diset</span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <div class="d-flex justify-content-end gap-1">
+                                                <button class="btn btn-info btn-sm text-white rounded-circle shadow-sm" onclick="lihatDetail('<%= item.id %>')" title="Lihat Isi Soal">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                
+                                                <button class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                                        onclick="bukaModalOnline('<%= item.id %>', '<%= item.judul %>')">
+                                                    <i class="fas fa-globe me-1"></i> Online
+                                                </button>
+                                                
+                                                <a href="/admin/ujian/download-offline/<%= item.id %>" class="btn btn-dark btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="return confirm('Download soal ini ke Word dan tandai sebagai Ujian Offline (Kertas)?')">
+                                                    <i class="fas fa-print me-1"></i> Offline
+                                                </a>
+
+                                                <button class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                                        onclick="bukaModalRevisi('<%= item.id %>', '<%= item.judul %>')">
+                                                    <i class="fas fa-undo me-1"></i> Revisi
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pills-history">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Tanggal Pengajuan</th>
+                                    <th>Info Ujian</th>
+                                    <th>Keputusan Akhir</th>
+                                    <th class="text-end pe-4">Opsi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (history.length === 0) { %>
+                                    <tr><td colspan="4" class="text-center py-5 text-muted">Belum ada riwayat.</td></tr>
+                                <% } else { %>
+                                    <% history.forEach(item => { %>
+                                    <tr>
+                                        <td class="ps-4 text-muted small"><%= new Date(item.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) %></td>
+                                        <td>
+                                            <div class="fw-bold"><%= item.nama_mapel %> <span class="text-muted small">- <%= item.tipe_tugas %></span></div>
+                                            <small><%= item.nama_kelas %> (<%= item.nama_guru %>)</small>
+                                        </td>
+                                        <td>
+                                            <% if(item.status_approval === 'Online') { %>
+                                                <span class="badge bg-success"><i class="fas fa-wifi me-1"></i> ONLINE</span>
+                                                <div class="small text-muted mt-1">Deadline: <%= new Date(item.deadline).toLocaleString('id-ID') %></div>
+                                            <% } else if(item.status_approval === 'Offline') { %>
+                                                <span class="badge bg-dark"><i class="fas fa-file-word me-1"></i> OFFLINE (DOCX)</span>
+                                            <% } else if(item.status_approval === 'Revisi') { %>
+                                                <span class="badge bg-danger"><i class="fas fa-exclamation-triangle me-1"></i> DIKEMBALIKAN</span>
+                                            <% } %>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <button class="btn btn-light btn-sm border me-1" onclick="lihatDetail('<%= item.id %>')" title="Preview"><i class="fas fa-search"></i></button>
+                                            
+                                            <a href="/admin/ujian/download-offline/<%= item.id %>" class="btn btn-light btn-sm border text-primary" title="Download Ulang Word">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="modalPreview" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold"><i class="fas fa-file-alt me-2 text-primary"></i> Preview Soal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h4 id="prevJudul" class="fw-bold mb-2"></h4>
+                <p id="prevDeskripsi" class="text-muted fst-italic mb-3 border-bottom pb-2"></p>
+                
+                <div id="prevFileArea" class="mb-3 d-none p-3 bg-light rounded border">
+                    <i class="fas fa-paperclip me-2 text-danger"></i> 
+                    <strong>Lampiran File:</strong> <a href="#" id="prevFileLink" target="_blank" class="text-decoration-none fw-bold ms-1">Download / Lihat File</a>
+                </div>
+
+                <div id="prevSoalList"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalOnline" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="/admin/ujian/set-online" method="POST" class="modal-content">
+            <input type="hidden" name="id_tugas" id="onlineIdTugas">
+            
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">Rilis Ujian Secara Online</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="alert alert-primary bg-opacity-10 border-0 mb-3">
+                    Anda akan menyetujui ujian: <strong id="onlineJudul"></strong> untuk dilaksanakan secara Online di aplikasi Siswa.
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tentukan Batas Waktu (Deadline) *</label>
+                    <input type="datetime-local" name="deadline_baru" class="form-control form-control-lg" required>
+                    <small class="text-muted">Siswa tidak dapat mengerjakan/mengirim jawaban setelah waktu ini.</small>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary fw-bold px-4">RILIS SEKARANG 🚀</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRevisi" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="/admin/ujian/revisi" method="POST" class="modal-content">
+            <input type="hidden" name="id_tugas" id="revisiIdTugas">
+            
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold">Kembalikan ke Guru (Revisi)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body">
+                <p>Minta guru untuk memperbaiki soal: <strong id="revisiJudul"></strong></p>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Catatan Perbaikan *</label>
+                    <textarea name="catatan" class="form-control" rows="4" placeholder="Contoh: Soal nomor 5 opsinya membingungkan, mohon diperjelas..." required></textarea>
+                    <small class="text-muted">Pesan ini akan muncul di dashboard Guru.</small>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-warning fw-bold px-4">KIRIM REVISI ↩️</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 1. FUNGSI LIHAT DETAIL (PREVIEW)
+    function lihatDetail(id) {
+        // Fetch Data via AJAX ke API kita
+        fetch(`/admin/ujian/detail-api/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                // Isi Judul & Deskripsi
+                document.getElementById('prevJudul').innerText = data.judul;
+                document.getElementById('prevDeskripsi').innerText = data.deskripsi || 'Tidak ada instruksi khusus.';
+                
+                // Handle File Lampiran
+                const fileArea = document.getElementById('prevFileArea');
+                const fileLink = document.getElementById('prevFileLink');
+                if (data.file_guru) {
+                    fileArea.classList.remove('d-none');
+                    fileLink.href = '/uploads/tugas/' + data.file_guru;
+                } else {
+                    fileArea.classList.add('d-none');
+                }
+
+                // Handle Soal Manual (JSON)
+                const listContainer = document.getElementById('prevSoalList');
+                listContainer.innerHTML = ''; // Reset isi dulu
+                
+                if (data.soal_list && data.soal_list.length > 0) {
+                    data.soal_list.forEach((s, i) => {
+                        let html = `<div class="card card-body bg-light border-0 mb-3 shadow-sm">
+                            <h6 class="fw-bold mb-2">Soal ${i+1} <span class="badge bg-secondary ms-2" style="font-size:0.6rem">${s.tipe.toUpperCase()}</span></h6>
+                            <p class="mb-2 text-dark" style="white-space: pre-wrap;">${s.pertanyaan}</p>`;
+                        
+                        if (s.tipe === 'pg' && s.opsi) {
+                            html += `<div class="ms-3 border-start border-3 border-primary ps-3">`;
+                            Object.keys(s.opsi).forEach(k => {
+                                const isKey = k === s.kunci ? 'text-success fw-bold' : 'text-muted';
+                                const icon = k === s.kunci ? '<i class="fas fa-check-circle ms-1"></i>' : '';
+                                html += `<div class="${isKey}">${k}. ${s.opsi[k]} ${icon}</div>`;
+                            });
+                            html += `</div>`;
+                        } else {
+                            html += `<div class="alert alert-success py-1 px-2 small mt-2 d-inline-block border-0">
+                                        <i class="fas fa-key me-1"></i> <strong>Kunci:</strong> ${s.kunci}
+                                     </div>`;
+                        }
+                        html += `</div>`;
+                        listContainer.innerHTML += html;
+                    });
+                } else if (!data.file_guru) {
+                    listContainer.innerHTML = '<div class="text-center text-muted py-3">Tidak ada konten soal (Mungkin error saat input).</div>';
+                }
+
+                // Tampilkan Modal
+                new bootstrap.Modal(document.getElementById('modalPreview')).show();
+            })
+            .catch(err => alert("Gagal memuat data soal."));
+    }
+
+    // 2. FUNGSI BUKA MODAL ONLINE
+    function bukaModalOnline(id, judul) {
+        document.getElementById('onlineIdTugas').value = id;
+        document.getElementById('onlineJudul').innerText = judul;
+        new bootstrap.Modal(document.getElementById('modalOnline')).show();
+    }
+
+    // 3. FUNGSI BUKA MODAL REVISI
+    function bukaModalRevisi(id, judul) {
+        document.getElementById('revisiIdTugas').value = id;
+        document.getElementById('revisiJudul').innerText = judul;
+        new bootstrap.Modal(document.getElementById('modalRevisi')).show();
+    }
+</script>
+
+<%- include('../../partials/footer') %>

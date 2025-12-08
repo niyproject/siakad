@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const ujianController = require('../controllers/ujianController'); // <--- PASTIKAN INI ADA!
 
 // Middleware sederhana: Pastikan yang akses cuma ADMIN
 const cekAdmin = (req, res, next) => {
@@ -13,29 +14,35 @@ const cekAdmin = (req, res, next) => {
 // Pasang middleware di semua rute admin
 router.use(cekAdmin);
 
-// RUTE DATA SISWA
+// ==========================
+// DATA SISWA
+// ==========================
 router.get('/siswa', adminController.viewSiswa);
 router.get('/siswa/tambah', adminController.halamanTambahSiswa);
 router.post('/siswa/tambah', adminController.prosesTambahSiswa);
+router.get('/siswa/edit/:id', adminController.halamanEditSiswa);
+router.post('/siswa/edit/:id', adminController.prosesUpdateSiswa);
+router.get('/siswa/hapus/:id', adminController.hapusSiswa);
 
-// --- TAMBAHAN BARU (EDIT & HAPUS) ---
-router.get('/siswa/edit/:id', adminController.halamanEditSiswa);   // Buka form edit
-router.post('/siswa/edit/:id', adminController.prosesUpdateSiswa); // Simpan perubahan
-router.get('/siswa/hapus/:id', adminController.hapusSiswa);        // Hapus data
-
-// --- RUTE DATA MAPEL ---
+// ==========================
+// DATA MATA PELAJARAN (MAPEL)
+// ==========================
 router.get('/mapel', adminController.viewMapel);
-router.post('/mapel/tambah', adminController.tambahMapel); // Langsung POST aja biar cepet (gak pake halaman form terpisah)
+router.post('/mapel/tambah', adminController.tambahMapel);
 router.post('/mapel/edit/:id', adminController.editMapel);
 router.get('/mapel/hapus/:id', adminController.hapusMapel);
 
-// --- RUTE PLOTTING JADWAL ---
+// ==========================
+// JADWAL MENGAJAR (PLOTTING)
+// ==========================
 router.get('/jadwal', adminController.viewJadwal);
 router.get('/jadwal/tambah', adminController.halamanTambahJadwal);
 router.post('/jadwal/tambah', adminController.prosesTambahJadwal);
 router.get('/jadwal/hapus/:id', adminController.hapusJadwal);
 
-// --- RUTE DATA GURU ---
+// ==========================
+// MANAJEMEN GURU
+// ==========================
 router.get('/guru', adminController.viewGuru);
 router.get('/guru/tambah', adminController.halamanTambahGuru);
 router.post('/guru/tambah', adminController.prosesTambahGuru);
@@ -43,19 +50,41 @@ router.get('/guru/edit/:id', adminController.halamanEditGuru);
 router.post('/guru/edit/:id', adminController.prosesUpdateGuru);
 router.get('/guru/hapus/:id', adminController.hapusGuru);
 
-// --- RUTE DATA KELAS ---
+// ==========================
+// DATA KELAS
+// ==========================
 router.get('/kelas', adminController.viewKelas);
 router.post('/kelas/tambah', adminController.tambahKelas);
 router.post('/kelas/edit/:id', adminController.editKelas);
 router.get('/kelas/hapus/:id', adminController.hapusKelas);
 
-// --- RUTE TAHUN AJARAN ---
+// ==========================
+// TAHUN AJARAN & RILIS NILAI
+// ==========================
 router.get('/tahun', adminController.viewTahun);
 router.post('/tahun/tambah', adminController.tambahTahun);
-router.get('/tahun/aktifkan/:id', adminController.aktifkanTahun); // Ini tombol saklarnya
+router.get('/tahun/aktifkan/:id', adminController.aktifkanTahun);
 router.get('/tahun/hapus/:id', adminController.hapusTahun);
+router.get('/tahun/toggle-nilai/:id/:tipe', adminController.toggleRilisNilai);
 
-// --- RUTE PENGATURAN ADMIN ---
+// ==========================
+// MONITORING NILAI (BARU)
+// ==========================
+router.get('/monitoring-nilai', adminController.monitoringNilai);
+router.get('/monitoring-nilai/detail/:id_mengajar', adminController.detailNilaiKelas);
+
+// ==========================
+// VALIDASI UJIAN (BARU)
+// ==========================
+router.get('/ujian/approval', ujianController.halamanApproval);
+router.get('/ujian/detail-api/:id', ujianController.getDetailTugas);
+router.post('/ujian/set-online', ujianController.approveOnline); // POST
+router.post('/ujian/revisi', ujianController.mintaRevisi);       // POST
+router.get('/ujian/download-offline/:id', ujianController.approveOffline);
+
+// ==========================
+// PENGATURAN ADMIN
+// ==========================
 router.get('/pengaturan', adminController.viewAdmin);
 router.post('/pengaturan/tambah', adminController.tambahAdmin);
 router.get('/pengaturan/hapus/:id', adminController.hapusAdmin);

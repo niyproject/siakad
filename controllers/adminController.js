@@ -349,6 +349,28 @@ exports.hapusJadwal = async (req, res) => {
     }
 };
 
+
+// 5. [BARU] Toggle Status Tampil Nilai (UTS/UAS)
+exports.toggleRilisNilai = async (req, res) => {
+    const { id, tipe } = req.params; // tipe bisa 'uts' atau 'uas'
+    
+    try {
+        // Cek status sekarang dulu (0 atau 1)
+        const [cek] = await db.query(`SELECT tampilkan_${tipe} as status FROM tahun_ajaran WHERE id = ?`, [id]);
+        
+        // Balik statusnya (Kalau 1 jadi 0, kalau 0 jadi 1)
+        const newStatus = cek[0].status == 1 ? 0 : 1;
+        
+        // Update database
+        await db.query(`UPDATE tahun_ajaran SET tampilkan_${tipe} = ? WHERE id = ?`, [newStatus, id]);
+        
+        res.redirect('/admin/tahun');
+    } catch (error) {
+        console.error(error);
+        res.send('Gagal ubah status rilis nilai.');
+    }
+};
+
 // ==========================
 // FITUR MANAJEMEN GURU
 // ==========================
@@ -615,6 +637,39 @@ exports.hapusTahun = async (req, res) => {
         res.send('Gagal hapus (Mungkin data nilai sudah terkait tahun ini?)');
     }
 };
+
+// [BARU] 5. Toggle Status Rilis Nilai (UTS/UAS)
+exports.toggleRilisNilai = async (req, res) => {
+    const { id, tipe } = req.params; // tipe = 'uts' atau 'uas'
+    
+    try {
+        // 1. Validasi tipe biar gak di-hack
+        if (tipe !== 'uts' && tipe !== 'uas') {
+            return res.send('Tipe nilai tidak valid!');
+        }
+
+        // 2. Cek status sekarang
+        // Pake syntax dynamic column name ?? (aman karena validasi di atas)
+        const sqlGet = `SELECT tampilkan_${tipe} as status FROM tahun_ajaran WHERE id = ?`;
+        const [cek] = await db.query(sqlGet, [id]);
+        
+        if (cek.length === 0) return res.redirect('/admin/tahun');
+
+        // 3. Balik Statusnya (0->1, 1->0)
+        const newStatus = cek[0].status == 1 ? 0 : 1;
+        
+        // 4. Update Database
+        const sqlUpdate = `UPDATE tahun_ajaran SET tampilkan_${tipe} = ? WHERE id = ?`;
+        await db.query(sqlUpdate, [newStatus, id]);
+        
+        console.log(` ✅ Sukses ubah status ${tipe.toUpperCase()} jadi ${newStatus}`);
+        res.redirect('/admin/tahun');
+
+    } catch (error) {
+        console.error(error);
+        res.send('Gagal mengubah status rilis nilai.');
+    }
+};
 // ==========================
 // FITUR KELOLA ADMIN (PENGATURAN)
 // ==========================
@@ -737,4 +792,70 @@ exports.hapusAdmin = async (req, res) => {
         console.error(error);
         res.send('Gagal hapus admin');
     }
+};
+
+// ==========================
+// FITUR MONITORING NILAI (PENTING BUAT ADMIN)
+// ==========================
+
+// 1. Halaman List Kelas untuk Monitoring
+exports.monitoringNilai = async (req, res) => {
+    try {
+        // Ambil daftar kelas yang ada jadwal mengajarnya
+        // Hitung juga berapa siswa yang udah dinilai UTS/UAS-nya
+        const sql = `
+            SELECT 
+                mengajar.id as mengajar_id,
+                kelas.nama_kelas,
+                mapel.nama_mapel,
+                guru.nama_lengkap as nama_guru,
+                (SELECT COUNT(*) FROM nilai WHERE mengajar_id = mengajar.id AND uts > 0) as count_uts,
+                (SELECT COUNT(*) FROM nilai WHERE mengajar_id = mengajar.id AND uas > 0) as count_uas
+            FROM mengajar
+            JOIN kelas ON mengajar.kelas_id = kelas.id
+            JOIN mapel ON mengajar.mapel_id = mapel.id
+            JOIN guru ON mengajar.guru_id = guru.id
+            ORDER BY kelas.nama_kelas ASC, mapel.nama_mapel ASC
+        `;
+        const [list] = await db.query(sql);
+
+        res.render('admin/nilai/monitoring', {
+            title: 'Monitoring Nilai',
+            user: req.session.user,
+            list: list
+        });
+    } catch (error) { res.send('Error monitoring.'); }
+};
+
+// 2. Halaman Detail Nilai Per Kelas
+exports.detailNilaiKelas = async (req, res) => {
+    const { id_mengajar } = req.params;
+    try {
+        // Info Header
+        const [info] = await db.query(`
+            SELECT mengajar.*, kelas.nama_kelas, mapel.nama_mapel, guru.nama_lengkap 
+            FROM mengajar 
+            JOIN kelas ON mengajar.kelas_id = kelas.id 
+            JOIN mapel ON mengajar.mapel_id = mapel.id 
+            JOIN guru ON mengajar.guru_id = guru.id 
+            WHERE mengajar.id = ?`, [id_mengajar]);
+
+        // List Siswa & Nilai
+        const sqlSiswa = `
+            SELECT siswa.nis, siswa.nama_lengkap, 
+                   nilai.uts, nilai.uas, nilai.nilai_akhir
+            FROM siswa
+            LEFT JOIN nilai ON siswa.id = nilai.siswa_id AND nilai.mengajar_id = ?
+            WHERE siswa.kelas_id = ?
+            ORDER BY siswa.nama_lengkap ASC
+        `;
+        const [siswaList] = await db.query(sqlSiswa, [id_mengajar, info[0].kelas_id]);
+
+        res.render('admin/nilai/detail', {
+            title: 'Detail Nilai Siswa',
+            user: req.session.user,
+            info: info[0],
+            siswaList: siswaList
+        });
+    } catch (error) { res.send('Error detail nilai.'); }
 };

@@ -35,9 +35,9 @@ CREATE TABLE `absensi` (
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
   KEY `siswa_id` (`siswa_id`),
-  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE,
+   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,8 +68,8 @@ CREATE TABLE `admin` (
   `foto_profil` varchar(255) DEFAULT 'default.png',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -105,8 +105,8 @@ CREATE TABLE `guru` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `nip` (`nip`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -136,7 +136,7 @@ CREATE TABLE `kelas` (
   `nama_kelas` varchar(20) NOT NULL,
   `tingkat` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -167,7 +167,7 @@ CREATE TABLE `mapel` (
   `nama_mapel` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `kode_mapel` (`kode_mapel`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -206,11 +206,11 @@ CREATE TABLE `mengajar` (
   KEY `mapel_id` (`mapel_id`),
   KEY `kelas_id` (`kelas_id`),
   KEY `tahun_ajaran_id` (`tahun_ajaran_id`),
-  CONSTRAINT `1` FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
-  CONSTRAINT `2` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`),
-  CONSTRAINT `3` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`),
-  CONSTRAINT `4` FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
+   FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`),
+   FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`),
+   FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -251,9 +251,9 @@ CREATE TABLE `nilai` (
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
   KEY `siswa_id` (`siswa_id`),
-  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`),
-  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`),
+   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -289,9 +289,9 @@ CREATE TABLE `pengumpulan` (
   PRIMARY KEY (`id`),
   KEY `tugas_id` (`tugas_id`),
   KEY `siswa_id` (`siswa_id`),
-  CONSTRAINT `1` FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id`) ON DELETE CASCADE,
+   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -331,9 +331,9 @@ CREATE TABLE `siswa` (
   UNIQUE KEY `nis` (`nis`),
   KEY `user_id` (`user_id`),
   KEY `kelas_id` (`kelas_id`),
-  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `2` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+   FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -367,7 +367,7 @@ CREATE TABLE `tahun_ajaran` (
   `semester` enum('Ganjil','Genap') NOT NULL,
   `status` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -402,8 +402,8 @@ CREATE TABLE `tugas` (
   `soal_json` longtext DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
-  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -437,7 +437,7 @@ CREATE TABLE `users` (
   `is_super_admin` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
