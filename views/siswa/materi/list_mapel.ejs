@@ -1,0 +1,39 @@
+<%- include('../../partials/header', { title: 'Perpustakaan Digital' }) %>
+<%- include('../../components/sidebar-siswa', { activePage: 'materi', profil: profil }) %>
+
+<div class="main-content">
+    <%- include('../../components/navbar', { title: 'Materi & E-Book', user: user }) %>
+
+    <div class="alert alert-primary border-0 shadow-sm mb-4">
+        <i class="fas fa-book-reader me-2"></i> Pilih mata pelajaran untuk melihat materi yang tersedia.
+    </div>
+
+    <div class="row g-3">
+        <% mapelList.forEach(m => { %>
+        <div class="col-md-6 col-lg-4">
+            <a href="/siswa/materi/mapel/<%= m.mapel_id %>" class="text-decoration-none">
+                <div class="card card-custom h-100 border-0 shadow-sm hover-shadow">
+                    <div class="card-body p-4 position-relative overflow-hidden">
+                        <div class="position-absolute end-0 bottom-0 opacity-10 me-n2 mb-n2">
+                            <i class="fas fa-book fa-5x text-primary"></i>
+                        </div>
+
+                        <h5 class="fw-bold text-dark mb-1"><%= m.nama_mapel %></h5>
+                        <p class="text-muted small mb-3">Guru: <%= m.nama_guru %></p>
+                        
+                        <% if (m.total_materi > 0) { %>
+                            <span class="badge bg-success rounded-pill">
+                                <%= m.total_materi %> Materi Tersedia
+                            </span>
+                        <% } else { %>
+                            <span class="badge bg-secondary rounded-pill">Belum ada materi</span>
+                        <% } %>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <% }) %>
+    </div>
+</div>
+
+<%- include('../../partials/footer') %>

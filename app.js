@@ -61,6 +61,8 @@ app.use('/guru', guruRoutes); // <--- Tambah (Prefix /guru)
 app.use('/profil', profilRoutes); // <--- Tambah (Prefix /profil)
 app.use('/siswa', require('./routes/siswaRoutes'));
 app.use('/absensi', require('./routes/absensiRoutes'));
+app.use('/layanan', require('./routes/laporanRoutes')); // Prefix /layanan
+app.use('/about', require('./routes/aboutRoutes')); // Akses via /about
 
 // ==========================================
 // 5. ERROR HANDLING (404)

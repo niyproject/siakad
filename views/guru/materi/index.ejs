@@ -1,0 +1,113 @@
+<%- include('../../partials/header', { title: 'Bank Materi & E-Book' }) %>
+<%- include('../../components/sidebar-guru', { activePage: 'materi', profil: profil }) %>
+
+<div class="main-content">
+    <%- include('../../components/navbar', { title: 'Kelola Materi Pelajaran', user: user }) %>
+
+    <div class="card card-custom bg-success text-white border-0 mb-4 shadow-sm">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold mb-1"><i class="fas fa-book-open me-2"></i> <%= info.nama_mapel %></h5>
+                <p class="mb-0 opacity-75">Kelas <%= info.nama_kelas %></p>
+            </div>
+            <div>
+                <button class="btn btn-light text-success fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalUploadPdf">
+                    <i class="fas fa-cloud-upload-alt me-2"></i> Upload PDF Baru
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <% if (materiList.length === 0) { %>
+        <div class="text-center py-5">
+            <div class="mb-3 opacity-25">
+                <i class="fas fa-folder-open fa-4x"></i>
+            </div>
+            <h6 class="text-muted fw-bold">Belum ada materi yang diupload.</h6>
+            <p class="text-muted small">Silakan upload modul, e-book, atau slide presentasi (PDF).</p>
+        </div>
+    <% } else { %>
+        <div class="row g-4">
+            <% materiList.forEach(item => { %>
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom h-100 border-0 shadow-sm hover-shadow">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="me-3">
+                                <div class="bg-danger bg-opacity-10 text-danger rounded p-3">
+                                    <i class="fas fa-file-pdf fa-2x"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1 text-truncate-2"><%= item.judul %></h6>
+                                <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> <%= new Date(item.created_at).toLocaleDateString('id-ID') %></small>
+                            </div>
+                        </div>
+                        
+                        <p class="text-muted small mb-3 text-truncate-2" style="min-height: 40px;">
+                            <%= item.deskripsi || 'Tidak ada deskripsi tambahan.' %>
+                        </p>
+
+                        <div class="d-grid gap-2">
+                            <a href="/uploads/materi/<%= item.file_path %>" target="_blank" class="btn btn-sm btn-outline-primary fw-bold">
+                                <i class="fas fa-eye me-1"></i> Buka Materi
+                            </a>
+                            
+                            <a href="/guru/materi/hapus/<%= item.id %>/<%= info.id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin ingin menghapus materi ini?')">
+                                <i class="fas fa-trash me-1"></i> Hapus
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+    <% } %>
+</div>
+
+<div class="modal fade" id="modalUploadPdf" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="/guru/materi/<%= info.id %>" method="POST" enctype="multipart/form-data" class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-file-pdf me-2"></i> Upload Materi Baru</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning small border-0">
+                    <i class="fas fa-info-circle me-1"></i> Hanya file format <strong>.PDF</strong> yang diizinkan (Maks 10MB).
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Judul Materi</label>
+                    <input type="text" name="judul" class="form-control" placeholder="Contoh: Modul Bab 1 - Ekosistem" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Deskripsi Singkat</label>
+                    <textarea name="deskripsi" class="form-control" rows="2" placeholder="Jelaskan isi materi ini..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small">Pilih File PDF</label>
+                    <input type="file" name="file_materi" class="form-control" accept="application/pdf" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-success fw-bold">Upload Sekarang</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Helper CSS buat motong teks kepanjangan */
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+
+<%- include('../../partials/footer') %>

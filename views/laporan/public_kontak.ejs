@@ -1,0 +1,65 @@
+<%- include('../partials/header', { title: 'Hubungi Kami' }) %>
+
+<style>
+    body { background-color: #f8f9fa; }
+    .form-container { max-width: 600px; margin: 50px auto; }
+</style>
+
+<nav class="navbar navbar-dark bg-dark mb-4 shadow-sm px-4">
+    <a class="navbar-brand fw-bold" href="/"><i class="fas fa-arrow-left me-2"></i> Kembali ke Halaman Depan</a>
+</nav>
+
+<div class="container form-container">
+    <div class="card card-custom border-0 shadow-lg">
+        <div class="card-header bg-secondary text-white p-4 border-0 text-center">
+            <i class="fas fa-headset fa-3x mb-3 opacity-50"></i>
+            <h4 class="fw-bold m-0">Layanan Bantuan</h4>
+            <p class="mb-0 opacity-75 small">Silakan isi form di bawah ini untuk menghubungi Admin.</p>
+        </div>
+        
+        <div class="card-body p-4">
+            <form action="/layanan/public-kirim" method="POST">
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Nama Lengkap</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Nama Anda" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Email Anda</label>
+                        <input type="email" name="email" class="form-control" placeholder="contoh: budi@gmail.com" required>
+                        <small class="text-muted" style="font-size: 0.7rem;">*admin akan membalas ke email ini.</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Subjek / Perihal</label>
+                    <input type="text" name="subjek" class="form-control" placeholder="Contoh: Lupa Password / Kendala Login" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small">Isi Pesan</label>
+                    <textarea name="pesan" class="form-control" rows="5" placeholder="Jelaskan kendala Anda..." required></textarea>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-secondary fw-bold shadow-sm">
+                        <i class="fas fa-paper-plane me-2"></i> KIRIM PESAN
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    
+    <div class="text-center mt-4 text-muted small">
+        &copy; 2025 SIAKAD Sekolah Created by 
+        <a href="https://drive.google.com/file/d/1E3Bf4XjvvHdFn6lj4hdFBmHk3kjKcsTn/view?usp=drivesdk" 
+           target="_blank" 
+           class="text-warning text-decoration-none">
+           niyproject
+        </a>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

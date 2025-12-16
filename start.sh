@@ -1,0 +1,2 @@
+mariadbd-safe &
+npm start

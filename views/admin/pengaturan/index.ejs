@@ -11,7 +11,7 @@
             <small class="text-muted">Manajemen hak akses pengelola aplikasi.</small>
         </div>
         
-        <% if (user.username === 'admin01') { %>
+        <% if (user.is_super_admin === 1) { %>
             <button class="btn btn-primary shadow-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalTambah">
                 <i class="fas fa-user-plus me-2"></i> Tambah Admin
             </button>
@@ -55,14 +55,21 @@
                             <td class="text-end pe-4">
                                 <% if (adm.is_super_admin === 1) { %>
                                     <span class="badge bg-light text-muted border">Protected</span>
+                                
                                 <% } else { %>
-                                    <% if(adm.user_id !== user.id) { %>
-                                        <a href="/admin/pengaturan/hapus/<%= adm.id %>" class="btn btn-sm btn-danger rounded-circle shadow-sm" onclick="return confirm('Yakin hapus admin ini?')">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
+                                    
+                                    <% if (user.is_super_admin === 1) { %>
+                                        
+                                        <% if(adm.user_id !== user.id) { %>
+                                            <a href="/admin/pengaturan/hapus/<%= adm.id %>" class="btn btn-sm btn-danger rounded-circle shadow-sm" onclick="return confirm('Yakin hapus admin ini?')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        <% } %>
+
                                     <% } else { %>
-                                        <button class="btn btn-sm btn-light text-muted rounded-circle" disabled><i class="fas fa-ban"></i></button>
+                                        <span class="text-muted small"><i class="fas fa-lock"></i></span>
                                     <% } %>
+
                                 <% } %>
                             </td>
                         </tr>
@@ -94,6 +101,7 @@
                             <label class="form-label fw-bold small">Password</label>
                             <input type="password" name="password" class="form-control" placeholder="Minimal 6 karakter" required>
                         </div>
+                        <input type="hidden" name="is_super_admin" value="0">
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary fw-bold">Simpan Admin</button>

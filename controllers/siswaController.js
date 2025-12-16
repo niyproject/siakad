@@ -1,183 +1,301 @@
 const db = require('../config/database');
+const fs = require('fs');
+const path = require('path');
 
+// ==========================================
+// 1. DASHBOARD & JADWAL
+// ==========================================
 exports.lihatJadwal = async (req, res) => {
     const siswaId = req.session.user.id;
     try {
-        const [siswaRows] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
-        if (siswaRows.length === 0) return res.redirect('/dashboard');
-        
-        const profil = siswaRows[0];
+        const [s] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
+        const siswa = s[0];
+
+        // 🔥 PERBAIKAN QUERY SQL 🔥
         const sql = `
-            SELECT mapel.nama_mapel, guru.nama_lengkap, mengajar.hari, mengajar.jam_mulai, mengajar.jam_selesai
+            SELECT 
+                mengajar.hari, 
+                TIME_FORMAT(mengajar.jam_mulai, '%H:%i') as jam_mulai,
+                TIME_FORMAT(mengajar.jam_selesai, '%H:%i') as jam_selesai,
+                mapel.nama_mapel,
+                
+                -- INI YANG TADI HILANG BUNG 👇
+                guru.nama_lengkap, 
+                guru.foto_profil,
+                guru.jenis_kelamin -- Tambahan buat logic avatar default kalau foto kosong
+                
             FROM mengajar
             JOIN mapel ON mengajar.mapel_id = mapel.id
             JOIN guru ON mengajar.guru_id = guru.id
-            JOIN tahun_ajaran ON mengajar.tahun_ajaran_id = tahun_ajaran.id
-            WHERE mengajar.kelas_id = ? AND tahun_ajaran.status = 1
+            WHERE mengajar.kelas_id = ?
             ORDER BY FIELD(mengajar.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'), mengajar.jam_mulai
         `;
-        const [jadwal] = await db.query(sql, [profil.kelas_id]);
-        res.render('siswa/jadwal', { jadwalList: jadwal, user: req.session.user, profil: profil, title: 'Jadwal Pelajaran' });
-    } catch (error) { res.send('Error memuat jadwal'); }
-};
-
-// Lihat Daftar Tugas
-// controllers/siswaController.js
-
-exports.lihatTugas = async (req, res) => {
+        
+        const [jadwal] = await db.query(sql, [siswa.kelas_id]);
+        
+        res.render('siswa/jadwal', {
+            title: 'Jadwal Pelajaran',
+            user: req.session.user,
+            profil: siswa,
+            jadwalList: jadwal
+        });
+    } catch (e) { res.send(e.message); }
+};exports.lihatJadwal = async (req, res) => {
     const siswaId = req.session.user.id;
-
     try {
-        // 1. Ambil Profil Siswa
-        const [siswaRows] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
-        const profil = siswaRows[0];
+        const [s] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
+        const siswa = s[0];
 
-        // 2. Query Daftar Tugas (Modified)
+        // 🔥 PERBAIKAN QUERY SQL 🔥
         const sql = `
             SELECT 
-                tugas.*, 
-                mapel.nama_mapel, 
-                guru.nama_lengkap as nama_guru,
-                DATE_FORMAT(tugas.deadline, '%d %b %Y %H:%i') as deadline_fmt,
+                mengajar.hari, 
+                TIME_FORMAT(mengajar.jam_mulai, '%H:%i') as jam_mulai,
+                TIME_FORMAT(mengajar.jam_selesai, '%H:%i') as jam_selesai,
+                mapel.nama_mapel,
                 
-                -- Data Pengumpulan Siswa
-                pengumpulan.id as pengumpulan_id,
-                pengumpulan.tanggal_kumpul,
-                pengumpulan.nilai,
-                pengumpulan.komentar_guru,
-                pengumpulan.catatan_siswa,
-                pengumpulan.status_koreksi,
+                -- INI YANG TADI HILANG BUNG 👇
+                guru.nama_lengkap, 
+                guru.foto_profil,
+                guru.jenis_kelamin -- Tambahan buat logic avatar default kalau foto kosong
+                
+            FROM mengajar
+            JOIN mapel ON mengajar.mapel_id = mapel.id
+            JOIN guru ON mengajar.guru_id = guru.id
+            WHERE mengajar.kelas_id = ?
+            ORDER BY FIELD(mengajar.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'), mengajar.jam_mulai
+        `;
+        
+        const [jadwal] = await db.query(sql, [siswa.kelas_id]);
+        
+        res.render('siswa/jadwal', {
+            title: 'Jadwal Pelajaran',
+            user: req.session.user,
+            profil: siswa,
+            jadwalList: jadwal
+        });
+    } catch (e) { res.send(e.message); }
+};
 
-                -- Data Saklar Rilis Nilai (Dari Tahun Ajaran)
-                tahun_ajaran.tampilkan_uts,
-                tahun_ajaran.tampilkan_uas
+// ==========================================
+// 2. PROFIL SAYA (INI YANG TADI HILANG)
+// ==========================================
+exports.profil = async (req, res) => {
+    const siswaId = req.session.user.id;
+    try {
+        const [s] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
+        res.render('siswa/profil', {
+            title: 'Profil Saya',
+            user: req.session.user,
+            profil: s[0]
+        });
+    } catch (e) { res.send(e.message); }
+};
 
+exports.updateProfil = async (req, res) => {
+    const siswaId = req.session.user.id;
+    const fs = require('fs');
+    const path = require('path');
+
+    try {
+        let queryFoto = "";
+        let params = [];
+
+        if (req.file) {
+            // 1. Hapus Foto Lama
+            const [old] = await db.query('SELECT foto_profil FROM siswa WHERE user_id = ?', [siswaId]);
+            if (old[0].foto_profil && old[0].foto_profil !== 'default.png' && !old[0].foto_profil.startsWith('default-')) {
+                const oldPath = path.join(__dirname, '../public/uploads/profil/', old[0].foto_profil);
+                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            }
+
+            // 2. Siapkan Query Foto Baru
+            queryFoto = "foto_profil = ?, ";
+            params.push(req.file.filename);
+            
+            // 3. Update Session (Penting biar layar berubah)
+            if (req.session.profil) req.session.profil.foto_profil = req.file.filename;
+            if (req.session.user) req.session.user.foto = req.file.filename;
+        }
+
+        // 4. Eksekusi Database
+        params.push(siswaId);
+        await db.query(`UPDATE siswa SET ${queryFoto} updated_at = NOW() WHERE user_id = ?`, params);
+
+        // --- 🔥 PERBAIKAN REDIRECT (SOLUSI 404) 🔥 ---
+        // Kita ambil alamat 'Referer' (halaman asal) secara manual.
+        // Kalau referer gak kebaca, kita lempar ke '/dashboard' biar aman.
+        const halamanAsal = req.get('Referer') || '/dashboard';
+        res.redirect(halamanAsal);
+
+    } catch (error) {
+        console.error("Error update profil:", error);
+        res.send('<script>alert("Gagal update profil."); window.history.back();</script>');
+    }
+};
+
+// ==========================================
+// 3. FITUR TUGAS & KUIS
+// ==========================================
+exports.lihatTugas = async (req, res) => {
+    const siswaId = req.session.user.id;
+    try {
+        const [s] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
+        const siswa = s[0];
+
+        const sql = `
+            SELECT tugas.*, mapel.nama_mapel, guru.nama_lengkap as nama_guru,
+                   DATE_FORMAT(tugas.deadline, '%d %b %H:%i') as deadline_fmt,
+                   (SELECT COUNT(*) FROM pengumpulan WHERE tugas_id = tugas.id AND siswa_id = ?) as sudah_kumpul,
+                   (SELECT nilai FROM pengumpulan WHERE tugas_id = tugas.id AND siswa_id = ?) as nilai
             FROM tugas
             JOIN mengajar ON tugas.mengajar_id = mengajar.id
             JOIN mapel ON mengajar.mapel_id = mapel.id
             JOIN guru ON mengajar.guru_id = guru.id
-            JOIN tahun_ajaran ON mengajar.tahun_ajaran_id = tahun_ajaran.id
-            
-            LEFT JOIN pengumpulan ON tugas.id = pengumpulan.tugas_id AND pengumpulan.siswa_id = ?
-            
-            WHERE mengajar.kelas_id = ?
-            
-            -- FILTER PENTING: Hanya tampilkan PR biasa (Direct) atau Ujian Online
-            -- Tugas 'Pending' (blm di-acc) dan 'Offline' (ujian kertas) TIDAK MUNCUL
-            AND (tugas.status_approval = 'Direct' OR tugas.status_approval = 'Online')
-
-            ORDER BY tugas.deadline DESC
+            WHERE mengajar.kelas_id = ? AND tugas.status_approval = 'Direct'
+            ORDER BY tugas.created_at DESC
         `;
+        const [tugasList] = await db.query(sql, [siswa.id, siswa.id, siswa.kelas_id]);
 
-        const [tugasList] = await db.query(sql, [profil.id, profil.kelas_id]);
-
-        // 3. Render View
-        res.render('siswa/tugas', { 
-            tugasList: tugasList, 
-            user: req.session.user, 
-            profil: profil, 
-            title: 'Tugas & PR' 
+        res.render('siswa/tugas', {
+            title: 'Daftar Tugas', user: req.session.user, profil: siswa, tugasList: tugasList
         });
-
-    } catch (error) {
-        console.error(error);
-        res.send('Error memuat tugas siswa.');
-    }
+    } catch (e) { res.send(e.message); }
 };
 
-// Proses Upload Tugas (File)
 exports.kumpulTugas = async (req, res) => {
     const { id_tugas } = req.params;
-    const { catatan } = req.body;
-    const userId = req.session.user.id;
-    
+    const siswaId = req.session.user.id;
     try {
-        const [tugas] = await db.query('SELECT deadline FROM tugas WHERE id = ?', [id_tugas]);
-        if (new Date() > new Date(tugas[0].deadline)) return res.send('<script>alert("Waktu habis!"); window.history.back();</script>');
-        if (!req.file) return res.send('<script>alert("File wajib!"); window.history.back();</script>');
+        const [s] = await db.query('SELECT id FROM siswa WHERE user_id = ?', [siswaId]);
+        const realSiswaId = s[0].id;
         
-        const fileSiswa = req.file.filename;
-        const [s] = await db.query('SELECT id FROM siswa WHERE user_id = ?', [userId]);
-        const siswaId = s[0].id;
-
-        const [cek] = await db.query('SELECT id FROM pengumpulan WHERE tugas_id = ? AND siswa_id = ?', [id_tugas, siswaId]);
-
+        const fileName = req.file ? req.file.filename : null;
+        
+        // Cek udah kumpul belum
+        const [cek] = await db.query('SELECT id FROM pengumpulan WHERE tugas_id=? AND siswa_id=?', [id_tugas, realSiswaId]);
+        
         if (cek.length > 0) {
-            // UPDATE: Reset status_koreksi jadi 'Belum'
-            await db.query(`UPDATE pengumpulan SET file_siswa=?, catatan_siswa=?, tanggal_kumpul=NOW(), is_edited=1, status_koreksi='Belum' WHERE id=?`, 
-                [fileSiswa, catatan, cek[0].id]);
+            // Update
+            if (fileName) {
+                 await db.query('UPDATE pengumpulan SET file_siswa=?, tanggal_kumpul=NOW() WHERE id=?', [fileName, cek[0].id]);
+            } else {
+                 await db.query('UPDATE pengumpulan SET tanggal_kumpul=NOW() WHERE id=?', [cek[0].id]);
+            }
         } else {
-            await db.query(`INSERT INTO pengumpulan (tugas_id, siswa_id, file_siswa, catatan_siswa, status_koreksi) VALUES (?, ?, ?, ?, 'Belum')`, 
-                [id_tugas, siswaId, fileSiswa, catatan]);
+            // Insert
+            await db.query('INSERT INTO pengumpulan (tugas_id, siswa_id, file_siswa, tanggal_kumpul) VALUES (?, ?, ?, NOW())', [id_tugas, realSiswaId, fileName]);
         }
         res.redirect('/siswa/tugas');
-    } catch (error) { res.send('Gagal upload.'); }
+    } catch (e) { res.send(e.message); }
 };
 
-// Halaman Kuis Manual
 exports.halamanKerjakan = async (req, res) => {
     const { id_tugas } = req.params;
-    const userId = req.session.user.id;
-
+    const siswaId = req.session.user.id;
     try {
-        const [siswa] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [userId]);
+        const [s] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
         const [tugas] = await db.query('SELECT * FROM tugas WHERE id = ?', [id_tugas]);
-        if (tugas.length === 0) return res.redirect('/siswa/tugas');
-
+        
+        // Parse Soal JSON
         const soalList = JSON.parse(tugas[0].soal_json || '[]');
-        const isLate = new Date() > new Date(tugas[0].deadline);
 
-        // Ambil Jawaban Lama
-        const [submit] = await db.query('SELECT jawaban_json FROM pengumpulan WHERE tugas_id=? AND siswa_id=?', [id_tugas, siswa[0].id]);
-        let jawabanLama = {};
-        if (submit.length > 0 && submit[0].jawaban_json) {
-            const raw = JSON.parse(submit[0].jawaban_json);
-            raw.forEach(j => { jawabanLama[j.id] = j.jawab; });
-        }
-
-        res.render('siswa/kerjakan_tugas', {
-            tugas: tugas[0], soalList: soalList, user: req.session.user, profil: siswa[0], title: 'Mengerjakan Tugas', isLate: isLate, jawabanLama: jawabanLama
+        res.render('siswa/kerjakan_kuis', {
+            title: 'Mengerjakan: ' + tugas[0].judul,
+            user: req.session.user, profil: s[0], tugas: tugas[0], soalList: soalList
         });
-    } catch (error) { res.send('Error membuka soal.'); }
+    } catch (e) { res.send(e.message); }
 };
 
-// Proses Simpan Jawaban Kuis
 exports.prosesKerjakan = async (req, res) => {
     const { id_tugas } = req.params;
-    const userId = req.session.user.id;
-    
+    const siswaId = req.session.user.id;
+    // Ambil jawaban dari body (format: jawaban_1, jawaban_2, dst)
+    // Simpan logic sederhana dulu
     try {
-        const [tugas] = await db.query('SELECT * FROM tugas WHERE id = ?', [id_tugas]);
-        if (new Date() > new Date(tugas[0].deadline)) return res.send('<script>alert("Waktu habis!"); window.location.href="/siswa/tugas";</script>');
+        const [s] = await db.query('SELECT id FROM siswa WHERE user_id = ?', [siswaId]);
+        const realSiswaId = s[0].id;
 
-        const soalList = JSON.parse(tugas[0].soal_json || '[]');
-        let skor = 0;
-        let totalSoal = soalList.length;
-        let jawabanSiswaArr = [];
+        // Ambil semua jawaban dan bungkus jadi JSON
+        const jawabanUser = JSON.stringify(req.body);
 
-        soalList.forEach(soal => {
-            const jawab = req.body[`jawaban_${soal.id}`] || '';
-            jawabanSiswaArr.push({ id: soal.id, jawab: jawab });
-            if (soal.tipe === 'pg' && jawab.trim().toUpperCase() === soal.kunci.trim().toUpperCase()) {
-                skor += (100 / totalSoal);
-            }
-        });
-        skor = Math.round(skor);
-
-        const [s] = await db.query('SELECT id FROM siswa WHERE user_id = ?', [userId]);
-        const siswaId = s[0].id;
-        const jawabanJson = JSON.stringify(jawabanSiswaArr);
-
-        const [cek] = await db.query('SELECT id FROM pengumpulan WHERE tugas_id = ? AND siswa_id = ?', [id_tugas, siswaId]);
-
+        // Cek udah kumpul belum
+        const [cek] = await db.query('SELECT id FROM pengumpulan WHERE tugas_id=? AND siswa_id=?', [id_tugas, realSiswaId]);
+        
         if (cek.length > 0) {
-            // UPDATE: Reset status_koreksi jadi 'Belum'
-            await db.query(`UPDATE pengumpulan SET jawaban_json=?, nilai=?, tanggal_kumpul=NOW(), is_edited=1, status_koreksi='Belum' WHERE id=?`, 
-                [jawabanJson, skor, cek[0].id]);
+            await db.query('UPDATE pengumpulan SET jawaban_json=?, tanggal_kumpul=NOW() WHERE id=?', [jawabanUser, cek[0].id]);
         } else {
-            await db.query(`INSERT INTO pengumpulan (tugas_id, siswa_id, jawaban_json, nilai, tanggal_kumpul, status_koreksi) VALUES (?, ?, ?, ?, NOW(), 'Belum')`, 
-                [id_tugas, siswaId, jawabanJson, skor]);
+            await db.query('INSERT INTO pengumpulan (tugas_id, siswa_id, jawaban_json, tanggal_kumpul) VALUES (?, ?, ?, NOW())', [id_tugas, realSiswaId, jawabanUser]);
         }
-        res.redirect('/siswa/tugas');
-    } catch (error) { res.send('Gagal kirim jawaban.'); }
+        
+        res.send('<script>alert("Jawaban tersimpan!"); window.location.href="/siswa/tugas";</script>');
+
+    } catch (e) { res.send(e.message); }
+};
+
+// ==========================================
+// 4. FITUR PERPUSTAKAAN / MATERI (SISWA)
+// ==========================================
+exports.menuMateri = async (req, res) => {
+    const siswaId = req.session.user.id;
+    try {
+        const [s] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
+        const siswa = s[0];
+
+        const sql = `
+            SELECT 
+                mapel.id as mapel_id, mapel.nama_mapel, guru.nama_lengkap as nama_guru,
+                (SELECT COUNT(*) FROM materi 
+                 WHERE materi.mapel_id = mapel.id 
+                 AND materi.guru_id = guru.id
+                 AND materi.kelas_id = mengajar.kelas_id) as total_materi 
+            FROM mengajar
+            JOIN mapel ON mengajar.mapel_id = mapel.id
+            JOIN guru ON mengajar.guru_id = guru.id
+            WHERE mengajar.kelas_id = ?
+        `;
+        const [mapelList] = await db.query(sql, [siswa.kelas_id]);
+
+        res.render('siswa/materi/list_mapel', {
+            title: 'Perpustakaan Digital', user: req.session.user, profil: siswa, mapelList: mapelList
+        });
+    } catch (error) { res.send('Gagal memuat menu materi.'); }
+};
+
+exports.lihatMateriMapel = async (req, res) => {
+    const { id_mapel } = req.params;
+    const siswaId = req.session.user.id;
+    try {
+        const [s] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
+        const siswa = s[0];
+        const [m] = await db.query('SELECT nama_mapel FROM mapel WHERE id = ?', [id_mapel]);
+        
+        const sql = `
+            SELECT materi.*, guru.nama_lengkap as nama_guru
+            FROM materi
+            JOIN guru ON materi.guru_id = guru.id
+            WHERE materi.mapel_id = ? AND materi.kelas_id = ? 
+            ORDER BY materi.created_at DESC
+        `;
+        const [materiList] = await db.query(sql, [id_mapel, siswa.kelas_id]);
+
+        res.render('siswa/materi/index', {
+            title: 'Daftar Materi - ' + m[0].nama_mapel, user: req.session.user, profil: siswa, nama_mapel: m[0].nama_mapel, materiList: materiList
+        });
+    } catch (error) { res.send('Gagal memuat daftar file.'); }
+};
+
+exports.bacaMateri = async (req, res) => {
+    const { id } = req.params;
+    const siswaId = req.session.user.id;
+    try {
+        const [s] = await db.query('SELECT * FROM siswa WHERE user_id = ?', [siswaId]);
+        const [file] = await db.query(`SELECT materi.*, mapel.nama_mapel FROM materi JOIN mapel ON materi.mapel_id = mapel.id WHERE materi.id = ?`, [id]);
+
+        if (file.length === 0) return res.redirect('back');
+
+        res.render('siswa/materi/baca', {
+            title: 'Membaca: ' + file[0].judul, user: req.session.user, profil: s[0], materi: file[0]
+        });
+    } catch (error) { res.send('Gagal membuka file.'); }
 };

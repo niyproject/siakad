@@ -1,5 +1,5 @@
 <div class="sidebar">
-    
+
     <div class="p-4 text-center border-bottom border-secondary">
         <div class="position-relative d-inline-block mb-2">
             <% 
@@ -9,7 +9,7 @@
                     else if (profil.jenis_kelamin === 'P') fotoFinal = 'default-female.png';
                 }
             %>
-            <img src="/uploads/profil/<%= fotoFinal %>" 
+            <img src="/uploads/profil/<%= fotoFinal %>?v=<%= Date.now() %>" 
                  class="rounded-circle border border-3 border-light shadow" 
                  width="80" height="80" 
                  style="object-fit: cover;">
@@ -27,7 +27,7 @@
         </span>
     </div>
 
-<div class="sidebar-menu mt-3">
+    <div class="sidebar-menu mt-3">
         <div class="menu-label">Menu Utama</div>
         
         <a href="/dashboard" class="<%= activePage === 'dashboard' ? 'active' : '' %>">
@@ -40,6 +40,10 @@
 
         <div class="menu-label">Akademik</div>
         
+        <a href="/guru/materi-saya" class="<%= activePage === 'materi' ? 'active' : '' %>">
+            <i class="fas fa-book-open me-3" style="width:20px"></i> Materi & Buku
+        </a>
+
         <a href="/guru/menu-tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>">
             <i class="fas fa-laptop-code me-3" style="width:20px"></i> Kelola Tugas
         </a>
@@ -49,7 +53,6 @@
         </a>
         
         <hr class="border-secondary mx-3 opacity-50">
-
 
         <a href="/profil/ganti-password" class="d-flex justify-content-between align-items-center">
             <span><i class="fas fa-key me-3" style="width:20px"></i> Ganti Password</span>
@@ -64,3 +67,37 @@
         </a>
     </div>
 </div>
+
+<div class="modal fade text-dark" id="modalUpload" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        
+        <form action="/guru/profil" method="POST" enctype="multipart/form-data" class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold">Ganti Foto Profil</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <div class="mb-3">
+                    <img id="previewModal" src="/uploads/profil/default.png" 
+                         class="rounded-circle border shadow-sm" 
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                </div>
+                <input type="file" name="foto_profil" class="form-control form-control-sm" accept="image/*" onchange="previewFile(this)" required>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-center">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">Simpan Foto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewFile(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) { document.getElementById('previewModal').src = e.target.result; }
+            reader.readAsDataURL(file);
+        }
+    }
+</script>

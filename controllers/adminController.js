@@ -701,13 +701,14 @@ exports.viewAdmin = async (req, res) => {
 
 // 2. Tambah Admin Baru (HANYA SUPER ADMIN)
 exports.tambahAdmin = async (req, res) => {
-    // --- PROTEKSI SUPER ADMIN ---
-    // Ganti 'admin01' dengan username Super Admin lu yang asli
-    if (req.session.user.username !== 'admin01') {
+    // --- 1. PROTEKSI SUPER ADMIN (DINAMIS) ---
+    // Cek Session: Apakah dia Super Admin? (Angka 1 = Ya)
+    // Kalau undefined atau 0, tendang keluar.
+    if (!req.session.user || req.session.user.is_super_admin !== 1) {
         return res.send(`
             <script>
                 alert("⛔ AKSES DITOLAK!\\nHanya SUPER ADMIN yang boleh menambah admin baru.");
-                window.location.href = "/admin/pengaturan";
+                window.location.href = "/admin/pengaturan"; // Balikin ke halaman list
             </script>
         `);
     }
@@ -717,18 +718,19 @@ exports.tambahAdmin = async (req, res) => {
     try {
         // Cek username udah ada belum?
         const [cek] = await db.query('SELECT id FROM users WHERE username = ?', [username]);
-        if (cek.length > 0) return res.send('Username sudah dipakai!');
+        if (cek.length > 0) return res.send('<script>alert("Username sudah dipakai!"); window.history.back();</script>');
 
         // Hash Password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert ke Users (Role: admin)
+        // --- 2. INSERT KE USERS (Role: admin) ---
+        // PENTING: Set 'is_super_admin' jadi 0, karena admin baru adalah bawahan.
         const [userResult] = await db.query(
-            'INSERT INTO users (username, password, role) VALUES (?, ?, "admin")',
+            'INSERT INTO users (username, password, role, is_super_admin) VALUES (?, ?, "admin", 0)',
             [username, hashedPassword]
         );
 
-        // Insert ke Tabel Admin
+        // --- 3. INSERT KE TABEL ADMIN (PROFIL) ---
         await db.query(
             'INSERT INTO admin (user_id, nama_lengkap) VALUES (?, ?)',
             [userResult.insertId, nama_lengkap]
@@ -738,7 +740,7 @@ exports.tambahAdmin = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.send('Gagal tambah admin');
+        res.send('<script>alert("Gagal tambah admin. Cek log server."); window.history.back();</script>');
     }
 };
 

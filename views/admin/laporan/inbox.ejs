@@ -1,0 +1,124 @@
+<%- include('../../partials/header', { title: 'Kotak Masuk' }) %>
+<%- include('../../components/sidebar-admin', { activePage: 'laporan' }) %>
+
+<div class="main-content">
+    <%- include('../../components/navbar', { title: 'Pusat Pesan', user: user }) %>
+
+    <div class="card card-custom border-0 shadow-sm">
+        <div class="card-header bg-white p-4 border-0">
+            <h5 class="fw-bold m-0 text-primary"><i class="fas fa-inbox me-2"></i> Laporan Masuk</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Pengirim</th>
+                            <th>Subjek</th>
+                            <th>Kategori</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% pesanList.forEach(p => { %>
+                        <tr class="<%= p.status === 'Terkirim' ? 'fw-bold bg-white' : 'text-muted bg-light' %>">
+                            <td class="ps-4">
+                                <div><%= p.nama_pengirim || 'User #' + p.user_id %></div>
+                                <small class="text-muted"><%= p.email_pengirim || '(No Email)' %></small>
+                            </td>
+                            <td><%= p.subjek %></td>
+                            <td><span class="badge bg-secondary"><%= p.kategori %></span></td>
+                            <td>
+                                <% if(p.balasan_admin) { %>
+                                    <span class="badge bg-success">DIBALAS</span>
+                                <% } else { %>
+                                    <span class="badge bg-warning text-dark">BARU</span>
+                                <% } %>
+                            </td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" 
+                                        onclick="bukaPesan('<%= p.id %>', '<%= p.nama_pengirim %>', '<%= p.email_pengirim %>', `<%= p.pesan %>`, `<%= p.balasan_admin || '' %>`)">
+                                    <i class="fas fa-envelope-open me-1"></i> Buka
+                                </button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPesan" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Detail Pesan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="small text-muted">Dari:</label>
+                    <div><strong id="detailNama"></strong> <span id="detailEmail" class="text-primary"></span></div>
+                </div>
+                
+                <div class="p-3 bg-light rounded border mb-4" id="detailIsi" style="white-space: pre-wrap;"></div>
+
+                <form action="/admin/laporan/balas" method="POST" id="formBalas">
+                    <input type="hidden" name="id_laporan" id="inputID">
+                    <input type="hidden" name="email_tujuan" id="inputEmail">
+                    
+                    <div id="areaBalasanLama" class="d-none alert alert-success">
+                        <strong><i class="fas fa-check-circle me-1"></i> Anda sudah membalas:</strong>
+                        <hr class="my-2">
+                        <span id="textBalasanLama" class="fst-italic"></span>
+                    </div>
+
+                    <div id="areaInputBalasan">
+                        <hr>
+                        <label class="fw-bold mb-2">Tulis Balasan (Dikirim via Email)</label>
+                        <textarea name="isi_balasan" class="form-control" rows="4" placeholder="Ketik jawaban Anda di sini..." required></textarea>
+                        <button type="submit" class="btn btn-success mt-3 w-100 fw-bold shadow-sm">
+                            <i class="fas fa-paper-plane me-2"></i> KIRIM BALASAN
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function bukaPesan(id, nama, email, pesan, balasan) {
+        document.getElementById('inputID').value = id;
+        document.getElementById('inputEmail').value = email;
+        document.getElementById('detailNama').innerText = nama;
+        document.getElementById('detailEmail').innerText = email ? `(${email})` : '';
+        document.getElementById('detailIsi').innerText = pesan;
+
+        const areaLama = document.getElementById('areaBalasanLama');
+        const areaBaru = document.getElementById('areaInputBalasan');
+        const textLama = document.getElementById('textBalasanLama');
+
+        // Logic tampilan: Kalau udah dibalas, sembunyikan form input
+        if (balasan && balasan !== 'null') {
+            areaLama.classList.remove('d-none');
+            textLama.innerText = balasan;
+            areaBaru.classList.add('d-none');
+        } else {
+            areaLama.classList.add('d-none');
+            areaBaru.classList.remove('d-none');
+            
+            // Validasi kalau email kosong (misal data lama)
+            if (!email || email === 'undefined' || email === '') {
+                areaBaru.innerHTML = '<div class="alert alert-warning">User ini tidak menyertakan email. Tidak bisa membalas via sistem.</div>';
+            }
+        }
+
+        new bootstrap.Modal(document.getElementById('modalPesan')).show();
+    }
+</script>
+
+<%- include('../../partials/footer') %>

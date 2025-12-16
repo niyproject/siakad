@@ -1,3 +1,39 @@
+/* =========================================
+   1. REGISTRASI FONT LOKAL (POPPINS)
+   ========================================= */
+
+/* Regular (400) */
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/poppins-v24-latin-regular.woff2') format('woff2'); 
+    /* Perhatikan '../fonts/' artinya mundur dari folder css lalu masuk ke fonts */
+}
+
+/* Medium (500) */
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 500;
+    src: url('../fonts/poppins-v24-latin-500.woff2') format('woff2');
+}
+
+/* Bold (700) */
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../fonts/poppins-v24-latin-700.woff2') format('woff2');
+}
+
+/* =========================================
+   2. TERAPKAN KE BODY
+   ========================================= */
+body {
+    font-family: 'Poppins', sans-serif; /* Panggil nama font-nya disini */
+}
+
 /* === 1. DEFINISI VARIABEL (Jantung Design System) === */
 :root {
     /* Color Palette (Tema Biru Modern) */
@@ -32,7 +68,7 @@ body {
 
 /* === 3. COMPONENT: SIDEBAR === */
 .sidebar {
-    min-height: 100vh;
+    height: 100vh;
     width: var(--sidebar-width);
     background: var(--sidebar-bg);
     color: #fff;
@@ -41,6 +77,28 @@ body {
     left: 0;
     z-index: 1000;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column; 
+}
+
+.sidebar-menu {
+    flex: 1; /* Ambil semua sisa ruang kosong di bawah profil */
+    overflow-y: auto; /* Munculkan scroll vertikal jika konten panjang */
+    overflow-x: hidden; /* Sembunyikan scroll horizontal */
+    padding-bottom: 50px; /* Kasih napas di bawah biar logout gak mepet banget */
+}
+.sidebar-menu::-webkit-scrollbar {
+    width: 5px;
+}
+.sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3); /* Scrollbar transparan putih */
+    border-radius: 10px;
+}
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .sidebar a {
@@ -95,4 +153,30 @@ body {
     .sidebar { margin-left: calc(var(--sidebar-width) * -1); }
     .main-content { margin-left: 0; padding: 15px; }
     .sidebar.show { margin-left: 0; }
+}
+
+/* === 6. COMPONENT: OVERLAY (MOBILE) === */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Hitam transparan (Dimmed) */
+    z-index: 999; /* Di bawah Sidebar (1000), tapi di atas konten lain */
+    display: none; /* Default sembunyi */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+}
+
+/* Pastikan overlay gak muncul di Desktop */
+@media (min-width: 769px) {
+    .sidebar-overlay {
+        display: none !important;
+    }
 }

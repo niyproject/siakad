@@ -1,0 +1,79 @@
+<%- include('../partials/header', { title: 'Hubungi Admin' }) %>
+
+<% if (user.role === 'siswa') { %>
+    <%- include('../components/sidebar-siswa', { activePage: 'kontak', profil: profil }) %>
+<% } else if (user.role === 'guru') { %>
+    <%- include('../components/sidebar-guru', { activePage: 'kontak', profil: profil }) %>
+<% } else { %>
+    <%- include('../components/sidebar-admin', { activePage: 'kontak' }) %>
+<% } %>
+
+<div class="main-content">
+    <%- include('../components/navbar', { title: 'Pusat Bantuan', user: user }) %>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-primary text-white p-4 border-0">
+                    <h5 class="fw-bold m-0"><i class="fas fa-envelope-open-text me-2"></i> Form Pengaduan & Bantuan</h5>
+                    <p class="mb-0 opacity-75 small">Kendala akun, nilai, atau bug aplikasi? Sampaikan di sini.</p>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <form action="/layanan/kirim" method="POST">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small">Kategori Masalah</label>
+                                <select name="kategori" class="form-select" required>
+                                    <option value="Akademik">Masalah Akademik (Nilai/Tugas)</option>
+                                    <option value="Teknis">Masalah Teknis (Login/Error)</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold small">Subjek / Judul Laporan</label>
+                                <input type="text" name="subjek" class="form-control" placeholder="Contoh: Salah input nilai UTS" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small">Detail Pesan</label>
+                            <textarea name="pesan" class="form-control" rows="6" placeholder="Jelaskan masalah Anda secara rinci..." required></textarea>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i> Laporan ini akan terkirim ke Email Resmi Admin Sekolah.
+                            </small>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary fw-bold shadow-sm">
+                                <i class="fas fa-paper-plane me-2"></i> KIRIM LAPORAN
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card card-custom border-0 shadow-sm bg-white mb-3">
+                <div class="card-body">
+                    <h6 class="fw-bold text-dark mb-3">Kontak Alternatif</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-2"><i class="fab fa-whatsapp text-success me-2 fa-lg"></i> 0812-3456-7890 (WA Only)</li>
+                        <li class="mb-2"><i class="fas fa-envelope text-danger me-2"></i> admin.sekolah@sch.id</li>
+                        <li><i class="fas fa-map-marker-alt text-primary me-2"></i> Ruang Tata Usaha (Lantai 1)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="alert alert-warning border-0 small">
+                <strong>Catatan:</strong> Gunakan bahasa yang sopan dan jelas. Admin akan membalas melalui pengumuman atau kontak pribadi jika diperlukan.
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

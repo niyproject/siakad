@@ -1,23 +1,20 @@
 <div class="sidebar">
-    
     <div class="p-4 text-center border-bottom border-secondary">
-        
         <div class="position-relative d-inline-block mb-2">
-            <% 
-                // Logic Gender buat Foto Default
+            <%
                 let fotoFinal = profil.foto_profil;
                 if (fotoFinal === 'default.png' || !fotoFinal) {
                     if (profil.jenis_kelamin === 'L') fotoFinal = 'default-male.png';
                     else if (profil.jenis_kelamin === 'P') fotoFinal = 'default-female.png';
                 }
             %>
-            <img src="/uploads/profil/<%= fotoFinal %>" 
-                 class="rounded-circle border border-3 border-light shadow" 
-                 width="80" height="80" 
+            <img src="/uploads/profil/<%= fotoFinal %>"
+                 class="rounded-circle border border-3 border-light shadow"
+                 width="80" height="80"
                  style="object-fit: cover;">
 
-            <button class="btn btn-sm btn-light rounded-circle shadow position-absolute bottom-0 end-0" 
-                    data-bs-toggle="modal" data-bs-target="#modalUpload" 
+            <button class="btn btn-sm btn-light rounded-circle shadow position-absolute bottom-0 end-0"
+                    data-bs-toggle="modal" data-bs-target="#modalUpload"
                     style="width: 30px; height: 30px; padding: 0;">
                 <i class="fas fa-camera text-dark" style="font-size: 12px;"></i>
             </button>
@@ -31,13 +28,17 @@
 
     <div class="sidebar-menu mt-3">
         <div class="menu-label">Menu Utama</div>
-        
+
         <a href="/dashboard" class="<%= activePage === 'dashboard' ? 'active' : '' %>">
             <i class="fas fa-home me-3" style="width:20px"></i> Dashboard
         </a>
-        
+
         <a href="/siswa/jadwal" class="<%= activePage === 'jadwal' ? 'active' : '' %>">
             <i class="fas fa-calendar-alt me-3" style="width:20px"></i> Jadwal Pelajaran
+        </a>
+
+        <a href="/siswa/materi" class="<%= activePage === 'materi' ? 'active' : '' %>">
+            <i class="fas fa-book me-3" style="width:20px"></i> Materi & E-Book
         </a>
 
         <a href="/siswa/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>">
@@ -49,15 +50,11 @@
         </a>
 
         <hr class="border-secondary mx-3 opacity-50">
-
+        
         <div class="menu-label">Akun</div>
 
         <a href="/profil/ganti-password" class="d-flex justify-content-between align-items-center">
             <span><i class="fas fa-key me-3" style="width:20px"></i> Ganti Password</span>
-            
-            <% if (typeof user !== 'undefined' && user.isDefaultPass) { %>
-                <span class="badge bg-danger rounded-circle p-1" style="width: 10px; height: 10px;"> </span>
-            <% } %>
         </a>
 
         <a href="/logout" class="text-danger">
@@ -65,3 +62,36 @@
         </a>
     </div>
 </div>
+
+<div class="modal fade text-dark" id="modalUpload" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <form action="/siswa/profil" method="POST" enctype="multipart/form-data" class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold">Ganti Foto Profil</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <div class="mb-3">
+                    <img id="previewModal" src="/uploads/profil/default.png" 
+                         class="rounded-circle border shadow-sm" 
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                </div>
+                <input type="file" name="foto_profil" class="form-control form-control-sm" accept="image/*" onchange="previewFile(this)" required>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-center">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">Simpan Foto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewFile(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) { document.getElementById('previewModal').src = e.target.result; }
+            reader.readAsDataURL(file);
+        }
+    }
+</script>

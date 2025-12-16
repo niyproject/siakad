@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const ujianController = require('../controllers/ujianController'); // <--- PASTIKAN INI ADA!
+const adminLaporanController = require('../controllers/adminLaporanController');
+
 
 // Middleware sederhana: Pastikan yang akses cuma ADMIN
 const cekAdmin = (req, res, next) => {
@@ -67,7 +69,7 @@ router.get('/tahun/aktifkan/:id', adminController.aktifkanTahun);
 router.get('/tahun/hapus/:id', adminController.hapusTahun);
 router.get('/tahun/toggle-nilai/:id/:tipe', adminController.toggleRilisNilai);
 
-// ==========================
+// ========================== 
 // MONITORING NILAI (BARU)
 // ==========================
 router.get('/monitoring-nilai', adminController.monitoringNilai);
@@ -88,5 +90,10 @@ router.get('/ujian/download-offline/:id', ujianController.approveOffline);
 router.get('/pengaturan', adminController.viewAdmin);
 router.post('/pengaturan/tambah', adminController.tambahAdmin);
 router.get('/pengaturan/hapus/:id', adminController.hapusAdmin);
+
+
+// RUTE LAPORAN (ADMIN)
+router.get('/laporan', adminLaporanController.inbox);
+router.post('/laporan/balas', adminLaporanController.balasPesan);
 
 module.exports = router;

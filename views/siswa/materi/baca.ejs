@@ -1,0 +1,44 @@
+<%- include('../../partials/header', { title: 'Membaca: ' + materi.judul }) %>
+
+<style>
+    .pdf-container {
+        width: 100%;
+        height: 85vh; /* Mengisi 85% tinggi layar */
+        border: none;
+        border-radius: 10px;
+        background-color: #525659; /* Warna abu gelap khas PDF viewer */
+    }
+</style>
+
+<%- include('../../components/sidebar-siswa', { activePage: 'materi', profil: profil }) %>
+
+<div class="main-content">
+    <%- include('../../components/navbar', { title: 'Mode Baca', user: user }) %>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="javascript:history.back()" class="btn btn-sm btn-light shadow-sm fw-bold">
+            <i class="fas fa-arrow-left me-2"></i> KEMBALI
+        </a>
+        <h6 class="m-0 fw-bold text-truncate d-none d-md-block" style="max-width: 50%;">
+            <%= materi.judul %>
+        </h6>
+        <a href="/uploads/materi/<%= materi.file_path %>" download class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-download me-1"></i> Unduh
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-lg overflow-hidden">
+        <div class="card-body p-0">
+            <embed src="/uploads/materi/<%= materi.file_path %>#toolbar=0" 
+                   class="pdf-container" 
+                   type="application/pdf">
+                
+            <div class="text-center p-5 d-none" id="pdf-fallback">
+                <p>Browser Anda tidak mendukung preview PDF.</p>
+                <a href="/uploads/materi/<%= materi.file_path %>" class="btn btn-primary">Download File PDF</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../../partials/footer') %>
