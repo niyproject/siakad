@@ -35,8 +35,8 @@ CREATE TABLE `absensi` (
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
   KEY `siswa_id` (`siswa_id`),
-  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
+   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE,
+   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -70,7 +70,7 @@ CREATE TABLE `admin` (
   `foto_profil` varchar(255) DEFAULT 'default.png',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -109,7 +109,7 @@ CREATE TABLE `guru` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `nip` (`nip`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -121,7 +121,7 @@ LOCK TABLES `guru` WRITE;
 /*!40000 ALTER TABLE `guru` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `guru` VALUES
-(4,12,'101010','Budi Santoso S.Id','Jayapura','2000-01-01','L','GURU-1765870634021.png','2025-12-16 07:37:14'),
+(4,12,'101010','Budi Santoso S.Id','Jayapura','2000-01-01','L','GURU-1765881674864.jpg','2025-12-16 10:41:14'),
 (5,13,'202020','Nana Mirdad S.Co','Malang','2002-02-02','P','default.png',NULL),
 (6,14,'303030','Budi Siregar S.Od','Sumedang','2000-03-03','L','default.png',NULL);
 /*!40000 ALTER TABLE `guru` ENABLE KEYS */;
@@ -180,8 +180,8 @@ CREATE TABLE `laporan` (
   `tanggal_balas` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -192,7 +192,8 @@ LOCK TABLES `laporan` WRITE;
 /*!40000 ALTER TABLE `laporan` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `laporan` VALUES
-(1,NULL,'lupa password','Lainnya','yaa gitu lahh','Dibaca','2025-12-09 10:38:12','niyy','doubledotslashh@gmail.com','oke siap\r\n','2025-12-09 10:41:36');
+(1,NULL,'lupa password','Lainnya','yaa gitu lahh','Dibaca','2025-12-09 10:38:12','niyy','doubledotslashh@gmail.com','oke siap\r\n','2025-12-09 10:41:36'),
+(2,NULL,'min gw lupa password min','Lainnya','gw lupa password min','Terkirim','2025-12-16 11:02:25','niy','niyproject.id@gmail.com',NULL,NULL);
 /*!40000 ALTER TABLE `laporan` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -247,9 +248,9 @@ CREATE TABLE `materi` (
   PRIMARY KEY (`id`),
   KEY `guru_id` (`guru_id`),
   KEY `mapel_id` (`mapel_id`),
-  CONSTRAINT `1` FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
-  CONSTRAINT `2` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+   FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
+   FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -260,7 +261,7 @@ LOCK TABLES `materi` WRITE;
 /*!40000 ALTER TABLE `materi` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `materi` VALUES
-(2,4,6,5,'asd','','MATERI-1765368872630-180838390.pdf','2025-12-10 12:14:32');
+(3,4,6,5,'contoh artikel','silahkan di\r\nbaca. untuk pertemuan ke 14','MATERI-1765882507818-817463075.pdf','2025-12-16 10:55:07');
 /*!40000 ALTER TABLE `materi` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -286,10 +287,10 @@ CREATE TABLE `mengajar` (
   KEY `mapel_id` (`mapel_id`),
   KEY `kelas_id` (`kelas_id`),
   KEY `tahun_ajaran_id` (`tahun_ajaran_id`),
-  CONSTRAINT `1` FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
-  CONSTRAINT `2` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`),
-  CONSTRAINT `3` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`),
-  CONSTRAINT `4` FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`)
+   FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
+   FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`),
+   FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`),
+   FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -331,8 +332,8 @@ CREATE TABLE `nilai` (
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
   KEY `siswa_id` (`siswa_id`),
-  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`),
-  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`)
+   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`),
+   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -372,8 +373,8 @@ CREATE TABLE `pengumpulan` (
   PRIMARY KEY (`id`),
   KEY `tugas_id` (`tugas_id`),
   KEY `siswa_id` (`siswa_id`),
-  CONSTRAINT `1` FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
+   FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id`) ON DELETE CASCADE,
+   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -411,8 +412,8 @@ CREATE TABLE `siswa` (
   UNIQUE KEY `nis` (`nis`),
   KEY `user_id` (`user_id`),
   KEY `kelas_id` (`kelas_id`),
-  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `2` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`)
+   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+   FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -486,8 +487,8 @@ CREATE TABLE `tugas` (
   `catatan_revisi` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
-  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -497,6 +498,8 @@ CREATE TABLE `tugas` (
 LOCK TABLES `tugas` WRITE;
 /*!40000 ALTER TABLE `tugas` DISABLE KEYS */;
 set autocommit=0;
+INSERT INTO `tugas` VALUES
+(25,14,'uts','','UTS',NULL,NULL,'2025-12-16 11:09:57',NULL,'Offline','pilihan kurang banyak\r\n');
 /*!40000 ALTER TABLE `tugas` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -553,4 +556,4 @@ commit;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2025-12-16 17:15:09
+-- Dump completed on 2025-12-17 22:19:11

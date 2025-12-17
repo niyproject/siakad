@@ -35,6 +35,35 @@
                 });
             }
         });
+
+        
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+            // alert("Ups! Klik kanan dimatikan demi keamanan. 🔒");
+        });
+
+        document.onkeydown = function (e) {
+            // Blokir F12
+            if (event.keyCode == 123) {
+                return false;
+            }
+            // Blokir Ctrl+U (View Source)
+            if (e.ctrlKey && e.keyCode == 85) {
+                return false;
+            }
+            // Blokir Ctrl+Shift+I (Inspect Element)
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 73) {
+                return false;
+            }
+            // Blokir Ctrl+Shift+C (Inspect Element)
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 67) {
+                return false;
+            }
+            // Blokir Ctrl+S (Save Page)
+            if (e.ctrlKey && e.keyCode == 83) {
+                return false;
+            }
+        };
     </script>
 
 </body>

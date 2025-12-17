@@ -1,12 +1,27 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const minifyHTML = require('express-minify-html-2');
 require('dotenv').config();
 
 const app = express();
 
 // const https = require('https'); // Modul HTTPS
 // const fs = require('fs');       // Modul Baca File
+app.use(minifyHTML({
+    override: true,
+    exception_url: false,
+    htmlMinifier: {
+        removeComments: true,
+        collapseWhitespace: true,
+        collapseBooleanAttributes: true,
+        removeAttributeQuotes: true,
+        removeEmptyAttributes: true,
+        
+        minifyJS: true,   // <-- Ini buat Script <script>...</script>
+        minifyCSS: true   // <-- 🔥 TAMBAH INI BUAT CSS <style>...</style>
+    }
+}));
 
 // ==========================================
 // 1. SETUP ENGINE & STATIC FILES
