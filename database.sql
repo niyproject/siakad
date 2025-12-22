@@ -35,8 +35,8 @@ CREATE TABLE `absensi` (
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
   KEY `siswa_id` (`siswa_id`),
-   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE,
-   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
+  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -70,7 +70,7 @@ CREATE TABLE `admin` (
   `foto_profil` varchar(255) DEFAULT 'default.png',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
-   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -109,7 +109,7 @@ CREATE TABLE `guru` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `nip` (`nip`),
   KEY `user_id` (`user_id`),
-   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -180,7 +180,7 @@ CREATE TABLE `laporan` (
   `tanggal_balas` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
-   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -248,8 +248,8 @@ CREATE TABLE `materi` (
   PRIMARY KEY (`id`),
   KEY `guru_id` (`guru_id`),
   KEY `mapel_id` (`mapel_id`),
-   FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
-   FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`)
+  CONSTRAINT `1` FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
+  CONSTRAINT `2` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -287,10 +287,10 @@ CREATE TABLE `mengajar` (
   KEY `mapel_id` (`mapel_id`),
   KEY `kelas_id` (`kelas_id`),
   KEY `tahun_ajaran_id` (`tahun_ajaran_id`),
-   FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
-   FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`),
-   FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`),
-   FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`)
+  CONSTRAINT `1` FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`),
+  CONSTRAINT `2` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id`),
+  CONSTRAINT `3` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`),
+  CONSTRAINT `4` FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -332,8 +332,8 @@ CREATE TABLE `nilai` (
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
   KEY `siswa_id` (`siswa_id`),
-   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`),
-   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`)
+  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`),
+  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -373,8 +373,8 @@ CREATE TABLE `pengumpulan` (
   PRIMARY KEY (`id`),
   KEY `tugas_id` (`tugas_id`),
   KEY `siswa_id` (`siswa_id`),
-   FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id`) ON DELETE CASCADE,
-   FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
+  CONSTRAINT `1` FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `2` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -412,8 +412,8 @@ CREATE TABLE `siswa` (
   UNIQUE KEY `nis` (`nis`),
   KEY `user_id` (`user_id`),
   KEY `kelas_id` (`kelas_id`),
-   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-   FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`)
+  CONSTRAINT `1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `2` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -487,7 +487,7 @@ CREATE TABLE `tugas` (
   `catatan_revisi` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `mengajar_id` (`mengajar_id`),
-   FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE
+  CONSTRAINT `1` FOREIGN KEY (`mengajar_id`) REFERENCES `mengajar` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -531,7 +531,7 @@ LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `users` VALUES
-(1,'niyproject','$2b$10$Qs3bVfZnZrz2zOFQ1E5rZOjmV0sMfr/2NI01JXly2jSsn5ANZM5X.','admin','2025-11-29 07:42:52',1),
+(1,'niyproject','$2b$10$JeLulQ3DePAh6rgh0IfSvuQ/B8HPbVSINPxkxrQpHuLYDVJLOVB7y','admin','2025-11-29 07:42:52',1),
 (12,'101010','$2b$10$D338kNnf3TG18quSP9GZW.eRa2g8dqj6trS5NoKhMRGEnZp9lUaSu','guru','2025-11-30 07:07:37',0),
 (13,'202020','$2b$10$TrIncGYmRGgMrhCRSbL1j.7vgaKkDunxR8jUiUwV3qa/03h.dtWl.','guru','2025-11-30 07:08:56',0),
 (14,'303030','$2b$10$N5L9B3sz3e1jznixna86QOvTwwalGcrzHMFRz1Bq8F9ss7LcOibtC','guru','2025-11-30 07:10:12',0),
@@ -556,4 +556,4 @@ commit;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2025-12-17 22:19:11
+-- Dump completed on 2025-12-18 14:32:00

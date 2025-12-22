@@ -46,7 +46,8 @@ const uploadProfil = multer({
 // ==========================================
 const cekSiswa = (req, res, next) => {
     if (!req.session.user || req.session.user.role !== 'siswa') {
-        return res.redirect('/login');
+//        return res.redirect('/login');
+         return  res.status(404).render('404');
     }
     next();
 };

@@ -51,7 +51,7 @@
                         <% } else { %>
                             <% jadwalList.forEach((jadwal, index) => { %>
                             <tr>
-                                <td class="ps-4 fw-bold text-muted">#<%= index + 1 %></td>
+                                <td class="ps-4 fw-bold text-muted"><%= index + 1 %></td>
                                 <td>
                                     <span class="badge bg-light text-dark border fw-bold">
                                         <%= jadwal.jam_mulai_fmt %> - <%= jadwal.jam_selesai_fmt %>

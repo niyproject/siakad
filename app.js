@@ -2,9 +2,50 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const minifyHTML = require('express-minify-html-2');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 require('dotenv').config();
 
 const app = express();
+
+app.set('trust proxy', 1);
+
+app.use((req, res, next) => {
+    console.log(`[LOG TRAFIK] IP: ${req.ip} | URL: ${req.url}`);
+    next();
+});
+
+// Pasang Helmet dengan konfigurasi khusus buat SIAKAD
+// PASANG HELMET (Security Headers)
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            // Defaultnya cuma bolehin dari domain sendiri
+            "default-src": ["'self'"],
+            
+            // Bolehkan script lokal & inline (penting buat JS di dalam EJS lu)
+            "script-src": ["'self'", "'unsafe-inline'"],
+            "script-src-attr": ["'unsafe-inline'"],
+            
+            // Bolehkan style lokal & inline (biar CSS di 404.ejs tetep jalan)
+            "style-src": ["'self'", "'unsafe-inline'"],
+            
+            // Bolehkan gambar lokal, base64 (buat hantu SVG), dan Google Drive
+            "img-src": ["'self'", "data:", "drive.google.com", "lh3.googleusercontent.com", "images.unsplash.com", "cdn-icons-png.flaticon.com"],
+            
+            // Bolehkan font lokal (Poppins & FontAwesome lu)
+            "font-src": ["'self'", "data:"],
+            
+            // Proteksi tambahan
+            "object-src": ["'none'"],
+            "upgrade-insecure-requests": null,
+        },
+    },
+    // Proteksi biar web lu gak bisa di-frame orang lain (Anti-Clickjacking)
+    hsts: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // const https = require('https'); // Modul HTTPS
 // const fs = require('fs');       // Modul Baca File
@@ -18,10 +59,28 @@ app.use(minifyHTML({
         removeAttributeQuotes: true,
         removeEmptyAttributes: true,
         
-        minifyJS: true,   // <-- Ini buat Script <script>...</script>
-        minifyCSS: true   // <-- 🔥 TAMBAH INI BUAT CSS <style>...</style>
+        minifyJS: true,   
+        minifyCSS: true   
     }
 }));
+
+// Satpam umum: Maksimal 100 request per 15 menit per IP
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    // Kita ganti message jadi handler
+    handler: (req, res, next, options) => {
+        res.status(429).render('404', {
+            code: '429',
+            user: req.session.user || null,
+            errorTitle: "Slow Down, Bung!",
+            message: "Lu terlalu bersemangat nge-klik nih. Santai dulu, tarik napas, coba lagi 15 menit lagi ya."
+        });
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 
 // ==========================================
 // 1. SETUP ENGINE & STATIC FILES
@@ -30,8 +89,27 @@ app.use(minifyHTML({
 app.set('view engine', 'ejs');
 // Set folder tempat file HTML/EJS disimpan
 app.set('views', path.join(__dirname, 'views'));
+
 // Set folder public (untuk CSS, Gambar, JS Frontend)
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
+// Definisi folder public dengan konfigurasi Header khusus
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: function (res, filePath) {
+        // 1. Pastikan MIME Type Font dikenali
+        if (filePath.endsWith('.woff2')) {
+            res.setHeader('Content-Type', 'font/woff2');
+        }
+        if (filePath.endsWith('.woff')) {
+            res.setHeader('Content-Type', 'font/woff');
+        }
+
+        // 2. OBAT KOTAK-KOTAK DI LAN (CORS)
+        // Izinkan font diakses dari IP manapun (misal 192.168.x.x)
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    }
+}));
 
 // ==========================================
 // 2. MIDDLEWARE (PENGOLAH DATA)
@@ -41,11 +119,12 @@ app.use(express.urlencoded({ extended: true }));
 // Supaya bisa baca format JSON
 app.use(express.json());
 
+
 // ==========================================
 // 3. SETUP SESSION (SISTEM LOGIN)
 // ==========================================
 app.use(session({
-    secret: 'rahasia_dapur_siakad_termux_2025', // Ganti string ini bebas biar aman
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: { 
@@ -53,11 +132,18 @@ app.use(session({
     }
 }));
 
+
 // Middleware Global: Biar data user bisa diakses di semua file EJS
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     next();
 });
+
+//pasang route absensi terlebih dahulu
+app.use('/absensi', require('./routes/absensiRoutes'));
+// Pasang ke semua rute
+app.use(generalLimiter);
+
 
 // ==========================================
 // 4. DAFTAR RUTE (ROUTES)
@@ -75,21 +161,34 @@ app.use('/admin', adminRoutes);         // Handle: Fitur Admin (Data Siswa, Guru
 app.use('/guru', guruRoutes); // <--- Tambah (Prefix /guru)
 app.use('/profil', profilRoutes); // <--- Tambah (Prefix /profil)
 app.use('/siswa', require('./routes/siswaRoutes'));
-app.use('/absensi', require('./routes/absensiRoutes'));
+//app.use('/absensi', require('./routes/absensiRoutes'));
 app.use('/layanan', require('./routes/laporanRoutes')); // Prefix /layanan
 app.use('/about', require('./routes/aboutRoutes')); // Akses via /about
 
 // ==========================================
-// 5. ERROR HANDLING (404)
+// 5. ERROR HANDLING (404 dll)
 // ==========================================
+
+// Catch-all Middleware untuk Halaman Tidak Ditemukan (404)
 app.use((req, res) => {
-    res.status(404).send(`
-        <div style="text-align:center; padding:50px;">
-            <h1>404 - Nyasar Bung? 😅</h1>
-            <p>Halaman yang lu cari gak ada.</p>
-            <a href="/">Balik ke Jalan yang Benar</a>
-        </div>
-    `);
+    res.status(404).render('404', { 
+        code: '404',
+        errorTitle: 'Halaman Hilang',
+        message: 'Waduh Bung, sepertinya lu nyasar. Alamat yang lu tuju gak ada di peta SIAKAD kita.',
+        user: req.session.user || null,
+        favicon: '/img/ghost-solid.svg'
+    });
+});
+
+// Middleware untuk menangani Error 500 (Internal Server Error)
+app.use((err, req, res, next) => {
+    console.error(err.stack); // Log error di terminal buat lu cek
+    res.status(500).render('404', {
+        code: '500',
+        errorTitle: 'Server Lagi Puyeng',
+        message: 'Ada masalah teknis di server kami, Bung. Tim IT lagi berusaha benerin, coba lagi nanti ya!',
+        user: req.session.user || null
+    });
 });
 
 // ==========================================

@@ -6,14 +6,23 @@ const adminLaporanController = require('../controllers/adminLaporanController');
 
 
 // Middleware sederhana: Pastikan yang akses cuma ADMIN
+////const cekAdmin = (req, res, next) => {
+//    if (!req.session.user || req.session.user.role !== 'admin') {
+//        return res.redirect('/admin/center'); // Tendang ke login admin
+//    }
+//    next();
+//};
+
 const cekAdmin = (req, res, next) => {
+    // Jika bukan admin, pura-pura gak tau kalau rute ini ada
     if (!req.session.user || req.session.user.role !== 'admin') {
-        return res.redirect('/admin/center'); // Tendang ke login admin
+        // Tampilkan halaman hantu 404 yang kita buat tadi
+        return res.status(404).render('404'); 
     }
     next();
 };
-
 // Pasang middleware di semua rute admin
+//router.use(ruteProteksi, cekAdmin);
 router.use(cekAdmin);
 
 // ==========================

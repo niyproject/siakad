@@ -1,0 +1,106 @@
+<% 
+    // Tentukan Favicon berdasarkan kode error
+    let dynamicFavicon = '/img/ghost.svg'; // Default buat 404
+    
+    if (typeof code != 'undefined') {
+        if (code == '500') {
+            dynamicFavicon = '/img/tools.svg';
+        } else if (code == '429') {
+            dynamicFavicon = '/img/clock.svg';
+        }
+    }
+%>
+
+<%- include('partials/header', { 
+    title: (typeof code != 'undefined' ? code : '404') + ' - ' + (typeof errorTitle != 'undefined' ? errorTitle : 'Not Found'),
+    favicon: dynamicFavicon 
+}) %>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        .content-wrapper {
+            padding: 20px;
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .error-code {
+            font-size: 4rem;
+            font-weight: 700;
+            color: #343a40;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        h4 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        p {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 20px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-custom {
+            border-radius: 50px;
+            padding: 8px 25px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+    </style>
+
+    <div class="container">
+        <div class="content-wrapper">
+            <% 
+                let iconClass = 'fa-ghost'; // Default
+                if (typeof code != 'undefined') {
+                    if (code == '429') iconClass = 'fa-clock';
+                    if (code == '500') iconClass = 'fa-tools';
+                }
+            %>
+            <i class="fas <%= iconClass %> error-icon animate__animated animate__fadeIn"></i>
+            
+            <div class="error-code"><%= typeof code != 'undefined' ? code : '404' %></div>
+            
+            <h4><%= typeof errorTitle != 'undefined' ? errorTitle : 'Not Found' %></h4>
+            
+            <p>
+                <%= typeof message != 'undefined' ? message : 'Sepertinya halaman yang kamu tuju sudah tidak ada atau url yang kamu masukkan salah.' %>
+            </p>
+            
+            <div class="mt-4">
+                <% if (typeof user != 'undefined' && user) { %>
+                    <a href="/dashboard" class="btn btn-dark btn-custom shadow-sm">
+                        <i class="fas fa-th-large me-2"></i> Ke Dashboard
+                    </a>
+                <% } else { %>
+                    <a href="/" class="btn btn-dark btn-custom shadow-sm">
+                        <i class="fas fa-home me-2"></i> Ke Home
+                    </a>
+                <% } %>
+             </div>
+        </div>
+    </div>
+
+<%- include('partials/footer') %>

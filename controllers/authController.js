@@ -99,7 +99,10 @@ exports.prosesLogin = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.send('Terjadi kesalahan sistem saat login.');
+        console.log("Ada yang mau login nih! IP-nya: ", req.ip);
+        // Ini bakal otomatis lari ke middleware Error 500 yang ada di app.js
+        next(error); 
+        
     }
 };
 

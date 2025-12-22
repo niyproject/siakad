@@ -121,7 +121,7 @@
             <div class="card card-custom border-0 shadow-sm h-100 text-white" style="background: #343a40;">
                 <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
                     <i class="fas fa-clock fa-4x mb-3 text-warning"></i>
-                    <h4 class="fw-bold" id="jam-digital">00:00</h4>
+                    <h4 class="fw-bold" id="jam-digital">00:00:00</h4>
                     <p class="small opacity-75 mb-0" id="tanggal-hari-ini">Senin, 1 Januari 2025</p>
                 </div>
             </div>
@@ -133,7 +133,7 @@
 <script>
     function updateClock() {
         const now = new Date();
-        document.getElementById('jam-digital').innerText = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+        document.getElementById('jam-digital').innerText = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', second: '2-digit'});
         document.getElementById('tanggal-hari-ini').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     }
     setInterval(updateClock, 1000);

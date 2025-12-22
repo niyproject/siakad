@@ -6,7 +6,9 @@
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-minify-html-2": "^2.0.0",
+    "express-rate-limit": "^8.2.1",
     "express-session": "^1.18.2",
+    "helmet": "^8.1.0",
     "multer": "^2.0.2",
     "mysql2": "^3.15.3",
     "nodemailer": "^7.0.11",
@@ -23,7 +25,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/niyproject/siakad.git"

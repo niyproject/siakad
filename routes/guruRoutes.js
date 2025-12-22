@@ -67,7 +67,8 @@ const uploadProfil = multer({
 // ==========================================
 const cekGuru = (req, res, next) => {
     if (!req.session.user || req.session.user.role !== 'guru') {
-        return res.redirect('/login');
+//        return res.redirect('/login');
+        return res.status(404).render('404'); 
     }
     next();
 };
